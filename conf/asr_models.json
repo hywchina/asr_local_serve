@@ -1,0 +1,14 @@
+{
+  "models": [
+    {
+      "name": "fun-asr-nano-2512",
+      "model_name": "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512",
+      "tag": "asr"
+    },
+    {
+      "name": "speech_campplus_speaker-diarization_common",
+      "model_name": "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common",
+      "tag": "speaker_diarization"
+    }
+  ]
+}

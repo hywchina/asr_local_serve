@@ -52,6 +52,9 @@ curl -X POST http://localhost:8002/asr_sd \
 
 ### 阶段 1：问诊进行中（实时）
 
+https://yb.tencent.com/s/sc/QvWNy1CAOj4nI9S
+
+
 - 点击【开始问诊】
 - **立即开始录音**
 

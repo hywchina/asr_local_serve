@@ -6,23 +6,23 @@ Loading remote code successfully: ./Fun-ASR/model.py
 WARNING:root:trust_remote_code: False
 ASR model loaded.
 Loading Speaker Diarization model...
-2026-01-22 10:51:47,094 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
-2026-01-22 10:51:47,094 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common.
-2026-01-22 10:51:47,095 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
-2026-01-22 10:51:51,251 - modelscope - WARNING - No preprocessor field found in cfg.
-2026-01-22 10:51:51,251 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
-2026-01-22 10:51:51,251 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common'}. trying to build by task and model information.
-2026-01-22 10:51:51,251 - modelscope - INFO - No preprocessor key ('cluster-backend', 'speaker-diarization') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
-2026-01-22 10:51:51,251 - modelscope - INFO - cuda is not available, using cpu instead.
-2026-01-22 10:51:51,252 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
-2026-01-22 10:51:51,252 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common.
-2026-01-22 10:51:51,252 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
-2026-01-22 10:51:51,253 - modelscope - INFO - cuda is not available, using cpu instead.
-2026-01-22 10:51:51,354 - modelscope - WARNING - No preprocessor field found in cfg.
-2026-01-22 10:51:51,354 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
-2026-01-22 10:51:51,354 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common'}. trying to build by task and model information.
-2026-01-22 10:51:51,354 - modelscope - INFO - No preprocessor key ('cam++-sv', 'speaker-verification') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
-2026-01-22 10:51:51,354 - modelscope - INFO - cuda is not available, using cpu instead.
+2026-01-22 15:45:37,299 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
+2026-01-22 15:45:37,299 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common.
+2026-01-22 15:45:37,300 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
+2026-01-22 15:45:42,599 - modelscope - WARNING - No preprocessor field found in cfg.
+2026-01-22 15:45:42,599 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
+2026-01-22 15:45:42,599 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common'}. trying to build by task and model information.
+2026-01-22 15:45:42,599 - modelscope - INFO - No preprocessor key ('cluster-backend', 'speaker-diarization') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
+2026-01-22 15:45:42,599 - modelscope - INFO - cuda is not available, using cpu instead.
+2026-01-22 15:45:42,600 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
+2026-01-22 15:45:42,600 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common.
+2026-01-22 15:45:42,600 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
+2026-01-22 15:45:42,601 - modelscope - INFO - cuda is not available, using cpu instead.
+2026-01-22 15:45:42,720 - modelscope - WARNING - No preprocessor field found in cfg.
+2026-01-22 15:45:42,720 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
+2026-01-22 15:45:42,720 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common'}. trying to build by task and model information.
+2026-01-22 15:45:42,720 - modelscope - INFO - No preprocessor key ('cam++-sv', 'speaker-verification') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
+2026-01-22 15:45:42,720 - modelscope - INFO - cuda is not available, using cpu instead.
 SD model loaded.
 Loading ASR model...
 funasr version: 1.3.0.
@@ -31,374 +31,133 @@ Loading remote code successfully: ./Fun-ASR/model.py
 WARNING:root:trust_remote_code: False
 ASR model loaded.
 Loading Speaker Diarization model...
-2026-01-22 10:52:07,628 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
-2026-01-22 10:52:07,628 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common.
-2026-01-22 10:52:07,629 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
-2026-01-22 10:52:07,629 - modelscope - WARNING - No preprocessor field found in cfg.
-2026-01-22 10:52:07,629 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
-2026-01-22 10:52:07,630 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common'}. trying to build by task and model information.
-2026-01-22 10:52:07,630 - modelscope - INFO - No preprocessor key ('cluster-backend', 'speaker-diarization') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
-2026-01-22 10:52:07,630 - modelscope - INFO - cuda is not available, using cpu instead.
-2026-01-22 10:52:07,630 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
-2026-01-22 10:52:07,630 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common.
-2026-01-22 10:52:07,630 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
-2026-01-22 10:52:07,631 - modelscope - INFO - cuda is not available, using cpu instead.
-2026-01-22 10:52:07,744 - modelscope - WARNING - No preprocessor field found in cfg.
-2026-01-22 10:52:07,744 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
-2026-01-22 10:52:07,744 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common'}. trying to build by task and model information.
-2026-01-22 10:52:07,744 - modelscope - INFO - No preprocessor key ('cam++-sv', 'speaker-verification') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
-2026-01-22 10:52:07,744 - modelscope - INFO - cuda is not available, using cpu instead.
+2026-01-22 15:46:00,616 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
+2026-01-22 15:46:00,616 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common.
+2026-01-22 15:46:00,616 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common
+2026-01-22 15:46:00,617 - modelscope - WARNING - No preprocessor field found in cfg.
+2026-01-22 15:46:00,617 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
+2026-01-22 15:46:00,617 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common'}. trying to build by task and model information.
+2026-01-22 15:46:00,617 - modelscope - INFO - No preprocessor key ('cluster-backend', 'speaker-diarization') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
+2026-01-22 15:46:00,618 - modelscope - INFO - cuda is not available, using cpu instead.
+2026-01-22 15:46:00,618 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
+2026-01-22 15:46:00,618 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common.
+2026-01-22 15:46:00,618 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common
+2026-01-22 15:46:00,619 - modelscope - INFO - cuda is not available, using cpu instead.
+2026-01-22 15:46:00,755 - modelscope - WARNING - No preprocessor field found in cfg.
+2026-01-22 15:46:00,755 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
+2026-01-22 15:46:00,755 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common'}. trying to build by task and model information.
+2026-01-22 15:46:00,755 - modelscope - INFO - No preprocessor key ('cam++-sv', 'speaker-verification') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
+2026-01-22 15:46:00,756 - modelscope - INFO - cuda is not available, using cpu instead.
 SD model loaded.
-INFO:     Started server process [685906]
+INFO:     Started server process [2599039]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
-2026-01-22 10:52:26,614 - modelscope - INFO - Doing VAD...
-2026-01-22 10:52:26,621 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch
-2026-01-22 10:52:26,621 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch.
-2026-01-22 10:52:26,621 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch
+2026-01-22 15:48:16,173 - modelscope - INFO - Doing VAD...
+2026-01-22 15:48:16,178 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch
+2026-01-22 15:48:16,178 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch.
+2026-01-22 15:48:16,179 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch
 funasr version: 1.3.0.
 Check update of funasr, and it would cost few times. You may disable it by set `disable_update=True` in AutoModel
 You are using the latest version of funasr-1.3.0
 WARNING:root:trust_remote_code: False
-2026-01-22 10:52:27,281 - modelscope - WARNING - No preprocessor field found in cfg.
-2026-01-22 10:52:27,281 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
-2026-01-22 10:52:27,281 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch'}. trying to build by task and model information.
-2026-01-22 10:52:27,281 - modelscope - INFO - No preprocessor key ('funasr', 'voice-activity-detection') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
-2026-01-22 10:52:27,281 - modelscope - INFO - cuda is not available, using cpu instead.
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.013', 'forward': '0.072', 'batch_size': '1', 'rtf': '0.001'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.84it/s]rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.82it/s]                                                                                          rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.80it/s]
-2026-01-22 10:52:27,354 - modelscope - INFO - Doing segmentation...
-2026-01-22 10:52:27,354 - modelscope - INFO - Extracting embeddings...
-2026-01-22 10:52:28,680 - modelscope - INFO - Clustering...
-2026-01-22 10:52:28,697 - modelscope - INFO - Post processing...
-2026-01-22 10:52:28,700 - modelscope - INFO - initiate model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus-transformer_scl_zh-cn_16k-common
-2026-01-22 10:52:28,700 - modelscope - INFO - initiate model from location /home/huyanwei/projects/llm_cache/ms/model/speech_campplus-transformer_scl_zh-cn_16k-common.
-2026-01-22 10:52:28,701 - modelscope - INFO - initialize model from /home/huyanwei/projects/llm_cache/ms/model/speech_campplus-transformer_scl_zh-cn_16k-common
-2026-01-22 10:52:28,701 - modelscope - INFO - cuda is not available, using cpu instead.
-2026-01-22 10:52:28,981 - modelscope - WARNING - No preprocessor field found in cfg.
-2026-01-22 10:52:28,981 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
-2026-01-22 10:52:28,981 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_campplus-transformer_scl_zh-cn_16k-common'}. trying to build by task and model information.
-2026-01-22 10:52:28,981 - modelscope - INFO - No preprocessor key ('scl-sd', 'speaker-diarization') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
-2026-01-22 10:52:28,981 - modelscope - INFO - cuda is not available, using cpu instead.
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.057', 'extract_feat': '0.004', 'forward': '0.087', 'batch_size': '1', 'rtf': '0.004'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 11.49it/s]rtf_avg: 0.004: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 11.47it/s]                                                                                          rtf_avg: 0.004: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 11.46it/s]
+2026-01-22 15:48:21,862 - modelscope - WARNING - No preprocessor field found in cfg.
+2026-01-22 15:48:21,862 - modelscope - WARNING - No val key and type key found in preprocessor domain of configuration.json file.
+2026-01-22 15:48:21,862 - modelscope - WARNING - Cannot find available config to build preprocessor at mode inference, current config: {'model_dir': '/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch'}. trying to build by task and model information.
+2026-01-22 15:48:21,862 - modelscope - INFO - No preprocessor key ('funasr', 'voice-activity-detection') found in PREPROCESSOR_MAP, skip building preprocessor. If the pipeline runs normally, please ignore this log.
+2026-01-22 15:48:21,863 - modelscope - INFO - cuda is not available, using cpu instead.
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.009', 'forward': '0.033', 'batch_size': '1', 'rtf': '0.002'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 30.15it/s]rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 30.03it/s]                                                                                          rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 29.94it/s]
+2026-01-22 15:48:21,897 - modelscope - INFO - Doing segmentation...
+2026-01-22 15:48:21,897 - modelscope - INFO - Extracting embeddings...
+2026-01-22 15:48:22,234 - modelscope - INFO - Clustering...
+2026-01-22 15:48:22,234 - modelscope - INFO - Post processing...
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.055', 'extract_feat': '0.002', 'forward': '0.059', 'batch_size': '1', 'rtf': '0.070'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.99it/s]rtf_avg: 0.070: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.95it/s]                                                                                          rtf_avg: 0.070: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.92it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 
-100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.33s/it][A
-{'load_data': '0.000', 'extract_feat': '0.005', 'forward': '4.335', 'batch_size': '1', 'rtf': '0.182'}, : 100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.33s/it][A
-rtf_avg: 0.182: 100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.33s/it]                                                                                          [Artf_avg: 0.182: 100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.34s/it]
-100%|[31m██████████[0m| 1/1 [00:04<00:00,  4.39s/it]rtf_avg: 0.183, time_speech:  23.760, time_escape: 4.338: 100%|[31m██████████[0m| 1/1 [00:04<00:00,  4.39s/it]rtf_avg: 0.183, time_speech:  23.760, time_escape: 4.338: 100%|[31m██████████[0m| 1/1 [00:04<00:00,  4.39s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.055', 'extract_feat': '0.003', 'forward': '0.069', 'batch_size': '1', 'rtf': '0.009'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.46it/s]rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.43it/s]                                                                                          rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.41it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.99it/s][A
+{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.502', 'batch_size': '1', 'rtf': '0.597'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.99it/s][A
+rtf_avg: 0.597: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.99it/s]                                                                                          [Artf_avg: 0.597: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.99it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.78it/s]rtf_avg: 0.588, time_speech:  0.860, time_escape: 0.505: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.78it/s]rtf_avg: 0.588, time_speech:  0.860, time_escape: 0.505: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.78it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.057', 'extract_feat': '0.003', 'forward': '0.069', 'batch_size': '1', 'rtf': '0.013'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.50it/s]rtf_avg: 0.013: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.47it/s]                                                                                          rtf_avg: 0.013: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.45it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.47s/it][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '1.467', 'batch_size': '1', 'rtf': '0.182'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.47s/it][A
-rtf_avg: 0.182: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.47s/it]                                                                                          [Artf_avg: 0.182: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.47s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.52s/it]rtf_avg: 0.182, time_speech:  8.070, time_escape: 1.470: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.52s/it]rtf_avg: 0.182, time_speech:  8.070, time_escape: 1.470: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.52s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.051', 'extract_feat': '0.002', 'forward': '0.056', 'batch_size': '1', 'rtf': '0.025'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.84it/s]rtf_avg: 0.025: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.81it/s]                                                                                          rtf_avg: 0.025: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.78it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.14it/s][A
+{'load_data': '0.000', 'extract_feat': '0.004', 'forward': '0.874', 'batch_size': '1', 'rtf': '0.171'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.14it/s][A
+rtf_avg: 0.171: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.14it/s]                                                                                          [Artf_avg: 0.171: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.14it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.06it/s]rtf_avg: 0.171, time_speech:  5.130, time_escape: 0.879: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.06it/s]rtf_avg: 0.171, time_speech:  5.130, time_escape: 0.879: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.06it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.063', 'extract_feat': '0.002', 'forward': '0.069', 'batch_size': '1', 'rtf': '0.029'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.41it/s]rtf_avg: 0.029: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.38it/s]                                                                                          rtf_avg: 0.029: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.33it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.682', 'batch_size': '1', 'rtf': '0.307'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s][A
-rtf_avg: 0.307: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s]                                                                                          [Artf_avg: 0.307: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]rtf_avg: 0.307, time_speech:  2.230, time_escape: 0.685: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]rtf_avg: 0.307, time_speech:  2.230, time_escape: 0.685: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.053', 'extract_feat': '0.002', 'forward': '0.062', 'batch_size': '1', 'rtf': '0.010'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.05it/s]rtf_avg: 0.010: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.03it/s]                                                                                          rtf_avg: 0.010: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.01it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.49it/s][A
+{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '0.401', 'batch_size': '1', 'rtf': '0.171'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.49it/s][A
+rtf_avg: 0.171: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.49it/s]                                                                                          [Artf_avg: 0.171: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.49it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.17it/s]rtf_avg: 0.171, time_speech:  2.370, time_escape: 0.405: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.17it/s]rtf_avg: 0.171, time_speech:  2.370, time_escape: 0.405: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.17it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.056', 'extract_feat': '0.003', 'forward': '0.063', 'batch_size': '1', 'rtf': '0.023'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.85it/s]rtf_avg: 0.023: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.81it/s]                                                                                          rtf_avg: 0.023: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.79it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.16s/it][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '1.158', 'batch_size': '1', 'rtf': '0.184'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.16s/it][A
-rtf_avg: 0.184: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.16s/it]                                                                                          [Artf_avg: 0.184: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.16s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.21s/it]rtf_avg: 0.184, time_speech:  6.320, time_escape: 1.161: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.21s/it]rtf_avg: 0.184, time_speech:  6.320, time_escape: 1.161: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.21s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.052', 'extract_feat': '0.002', 'forward': '0.063', 'batch_size': '1', 'rtf': '0.008'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.80it/s]rtf_avg: 0.008: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.77it/s]                                                                                          rtf_avg: 0.008: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.75it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.43it/s][A
+{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.700', 'batch_size': '1', 'rtf': '0.253'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.43it/s][A
+rtf_avg: 0.253: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.43it/s]                                                                                          [Artf_avg: 0.253: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.43it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.31it/s]rtf_avg: 0.250, time_speech:  2.810, time_escape: 0.704: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.31it/s]rtf_avg: 0.250, time_speech:  2.810, time_escape: 0.704: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.31it/s]
+INFO:     127.0.0.1:32954 - "POST /asr_sd HTTP/1.1" 200 OK
+2026-01-22 16:08:18,437 - modelscope - INFO - Doing VAD...
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.006', 'forward': '0.027', 'batch_size': '1', 'rtf': '0.002'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 36.94it/s]rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 36.75it/s]                                                                                          rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 36.58it/s]
+2026-01-22 16:08:18,465 - modelscope - INFO - Doing segmentation...
+2026-01-22 16:08:18,465 - modelscope - INFO - Extracting embeddings...
+2026-01-22 16:08:18,640 - modelscope - INFO - Clustering...
+2026-01-22 16:08:18,640 - modelscope - INFO - Post processing...
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.054', 'extract_feat': '0.002', 'forward': '0.059', 'batch_size': '1', 'rtf': '0.095'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.02it/s]rtf_avg: 0.095: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.98it/s]                                                                                          rtf_avg: 0.095: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.95it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.63s/it][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '1.625', 'batch_size': '1', 'rtf': '0.213'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.63s/it][A
-rtf_avg: 0.213: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.63s/it]                                                                                          [Artf_avg: 0.213: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.63s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.68s/it]rtf_avg: 0.214, time_speech:  7.620, time_escape: 1.628: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.68s/it]rtf_avg: 0.214, time_speech:  7.620, time_escape: 1.628: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.68s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.050', 'extract_feat': '0.001', 'forward': '0.056', 'batch_size': '1', 'rtf': '0.019'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.80it/s]rtf_avg: 0.019: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.77it/s]                                                                                          rtf_avg: 0.019: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.75it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.86it/s][A
+{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.349', 'batch_size': '1', 'rtf': '0.582'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.86it/s][A
+rtf_avg: 0.582: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.86it/s]                                                                                          [Artf_avg: 0.582: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.86it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.45it/s]rtf_avg: 0.551, time_speech:  0.640, time_escape: 0.353: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.45it/s]rtf_avg: 0.551, time_speech:  0.640, time_escape: 0.353: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.45it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.056', 'extract_feat': '0.002', 'forward': '0.061', 'batch_size': '1', 'rtf': '0.063'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.33it/s]rtf_avg: 0.063: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.30it/s]                                                                                          rtf_avg: 0.063: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.27it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.53it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.652', 'batch_size': '1', 'rtf': '0.222'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.53it/s][A
-rtf_avg: 0.222: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.53it/s]                                                                                          [Artf_avg: 0.222: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.53it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.42it/s]rtf_avg: 0.218, time_speech:  3.000, time_escape: 0.655: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.42it/s]rtf_avg: 0.218, time_speech:  3.000, time_escape: 0.655: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.42it/s]
-INFO:     127.0.0.1:33174 - "POST /asr_sd HTTP/1.1" 200 OK
-2026-01-22 11:01:06,629 - modelscope - INFO - Doing VAD...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '0.015', 'batch_size': '1', 'rtf': '0.002'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 67.00it/s]rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 66.50it/s]                                                                                          rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 66.13it/s]
-INFO:     127.0.0.1:58174 - "POST /asr_sd HTTP/1.1" 500 Internal Server Error
-2026-01-22 11:02:09,363 - modelscope - INFO - Doing VAD...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.006', 'forward': '0.033', 'batch_size': '1', 'rtf': '0.001'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 30.43it/s]rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 30.34it/s]                                                                                          rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 30.26it/s]
-2026-01-22 11:02:09,399 - modelscope - INFO - Doing segmentation...
-2026-01-22 11:02:09,399 - modelscope - INFO - Extracting embeddings...
-2026-01-22 11:02:09,761 - modelscope - INFO - Clustering...
-2026-01-22 11:02:09,761 - modelscope - INFO - Post processing...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.050', 'extract_feat': '0.002', 'forward': '0.060', 'batch_size': '1', 'rtf': '0.009'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.59it/s]rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.56it/s]                                                                                          rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.53it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.78it/s][A
+{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.360', 'batch_size': '1', 'rtf': '0.428'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.78it/s][A
+rtf_avg: 0.428: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.78it/s]                                                                                          [Artf_avg: 0.428: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.78it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.40it/s]rtf_avg: 0.367, time_speech:  0.990, time_escape: 0.363: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.40it/s]rtf_avg: 0.367, time_speech:  0.990, time_escape: 0.363: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.40it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.054', 'extract_feat': '0.001', 'forward': '0.057', 'batch_size': '1', 'rtf': '0.085'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.46it/s]rtf_avg: 0.085: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.42it/s]                                                                                          rtf_avg: 0.085: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.40it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.36it/s][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '0.733', 'batch_size': '1', 'rtf': '0.107'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.36it/s][A
-rtf_avg: 0.107: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]                                                                                          [Artf_avg: 0.107: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.27it/s]rtf_avg: 0.107, time_speech:  6.850, time_escape: 0.736: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.27it/s]rtf_avg: 0.107, time_speech:  6.850, time_escape: 0.736: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.27it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.001', 'forward': '0.053', 'batch_size': '1', 'rtf': '0.046'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.93it/s]rtf_avg: 0.046: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.89it/s]                                                                                          rtf_avg: 0.046: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.86it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.67it/s][A
+{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.272', 'batch_size': '1', 'rtf': '0.413'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.67it/s][A
+rtf_avg: 0.413: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.67it/s]                                                                                          [Artf_avg: 0.413: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.67it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.01it/s]rtf_avg: 0.401, time_speech:  0.690, time_escape: 0.276: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.01it/s]rtf_avg: 0.401, time_speech:  0.690, time_escape: 0.276: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.01it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.056', 'extract_feat': '0.002', 'forward': '0.062', 'batch_size': '1', 'rtf': '0.036'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.00it/s]rtf_avg: 0.036: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.97it/s]                                                                                          rtf_avg: 0.036: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.94it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.48it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.223', 'batch_size': '1', 'rtf': '0.196'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.48it/s][A
-rtf_avg: 0.196: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.48it/s]                                                                                          [Artf_avg: 0.196: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.47it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.62it/s]rtf_avg: 0.194, time_speech:  1.170, time_escape: 0.227: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.62it/s]rtf_avg: 0.194, time_speech:  1.170, time_escape: 0.227: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.62it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.047', 'extract_feat': '0.001', 'forward': '0.051', 'batch_size': '1', 'rtf': '0.034'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.41it/s]rtf_avg: 0.034: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.37it/s]                                                                                          rtf_avg: 0.034: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.34it/s]
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.80it/s][A
+{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '0.556', 'batch_size': '1', 'rtf': '0.319'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.80it/s][A
+rtf_avg: 0.319: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.80it/s]                                                                                          [Artf_avg: 0.319: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.80it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.62it/s]rtf_avg: 0.318, time_speech:  1.760, time_escape: 0.559: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.62it/s]rtf_avg: 0.318, time_speech:  1.760, time_escape: 0.559: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.62it/s]
+  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.057', 'extract_feat': '0.002', 'forward': '0.063', 'batch_size': '1', 'rtf': '0.039'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.79it/s]rtf_avg: 0.039: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.75it/s]                                                                                          rtf_avg: 0.039: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.73it/s]
   0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
   0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
 
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.51it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.285', 'batch_size': '1', 'rtf': '0.190'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.51it/s][A
-rtf_avg: 0.190: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.51it/s]                                                                                          [Artf_avg: 0.190: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.50it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.98it/s]rtf_avg: 0.188, time_speech:  1.530, time_escape: 0.288: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.98it/s]rtf_avg: 0.188, time_speech:  1.530, time_escape: 0.288: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.97it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.001', 'forward': '0.052', 'batch_size': '1', 'rtf': '0.053'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.09it/s]rtf_avg: 0.053: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.06it/s]                                                                                          rtf_avg: 0.053: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.02it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.03it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.330', 'batch_size': '1', 'rtf': '0.323'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.03it/s][A
-rtf_avg: 0.323: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.03it/s]                                                                                          [Artf_avg: 0.323: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.03it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.63it/s]rtf_avg: 0.330, time_speech:  1.010, time_escape: 0.333: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.63it/s]rtf_avg: 0.330, time_speech:  1.010, time_escape: 0.333: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.63it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.001', 'forward': '0.054', 'batch_size': '1', 'rtf': '0.026'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.42it/s]rtf_avg: 0.026: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.38it/s]                                                                                          rtf_avg: 0.026: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.36it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.46it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.406', 'batch_size': '1', 'rtf': '0.199'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.46it/s][A
-rtf_avg: 0.199: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.46it/s]                                                                                          [Artf_avg: 0.199: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.46it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.18it/s]rtf_avg: 0.198, time_speech:  2.070, time_escape: 0.409: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.18it/s]rtf_avg: 0.198, time_speech:  2.070, time_escape: 0.409: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.18it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.001', 'forward': '0.052', 'batch_size': '1', 'rtf': '0.051'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.08it/s]rtf_avg: 0.051: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.04it/s]                                                                                          rtf_avg: 0.051: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.01it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.60it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.384', 'batch_size': '1', 'rtf': '0.377'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.60it/s][A
-rtf_avg: 0.377: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.60it/s]                                                                                          [Artf_avg: 0.377: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.60it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.29it/s]rtf_avg: 0.373, time_speech:  1.040, time_escape: 0.388: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.29it/s]rtf_avg: 0.373, time_speech:  1.040, time_escape: 0.388: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.29it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.001', 'forward': '0.052', 'batch_size': '1', 'rtf': '0.062'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.04it/s]rtf_avg: 0.062: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.00it/s]                                                                                          rtf_avg: 0.062: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.96it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.63it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.380', 'batch_size': '1', 'rtf': '0.453'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.63it/s][A
-rtf_avg: 0.453: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.63it/s]                                                                                          [Artf_avg: 0.453: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.63it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.32it/s]rtf_avg: 0.441, time_speech:  0.870, time_escape: 0.384: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.32it/s]rtf_avg: 0.441, time_speech:  0.870, time_escape: 0.384: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.32it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.047', 'extract_feat': '0.001', 'forward': '0.050', 'batch_size': '1', 'rtf': '0.046'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.81it/s]rtf_avg: 0.046: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.77it/s]                                                                                          rtf_avg: 0.046: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 19.74it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.94it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.341', 'batch_size': '1', 'rtf': '0.315'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.94it/s][A
-rtf_avg: 0.315: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.94it/s]                                                                                          [Artf_avg: 0.315: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.93it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.55it/s]rtf_avg: 0.307, time_speech:  1.120, time_escape: 0.344: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.55it/s]rtf_avg: 0.307, time_speech:  1.120, time_escape: 0.344: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.55it/s]
-INFO:     127.0.0.1:49986 - "POST /asr_sd HTTP/1.1" 200 OK
-2026-01-22 11:02:59,558 - modelscope - INFO - Doing VAD...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '0.010', 'batch_size': '1', 'rtf': '0.002'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 101.83it/s]rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 100.76it/s]                                                                                          rtf_avg: 0.002: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 99.93it/s] 
-INFO:     127.0.0.1:45236 - "POST /asr_sd HTTP/1.1" 500 Internal Server Error
-2026-01-22 11:17:06,524 - modelscope - INFO - Doing VAD...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.014', 'forward': '0.071', 'batch_size': '1', 'rtf': '0.001'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.00it/s]rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.98it/s]                                                                                          rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.96it/s]
-2026-01-22 11:17:06,597 - modelscope - INFO - Doing segmentation...
-2026-01-22 11:17:06,598 - modelscope - INFO - Extracting embeddings...
-2026-01-22 11:17:07,938 - modelscope - INFO - Clustering...
-2026-01-22 11:17:07,940 - modelscope - INFO - Post processing...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.055', 'extract_feat': '0.005', 'forward': '0.086', 'batch_size': '1', 'rtf': '0.004'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 11.59it/s]rtf_avg: 0.004: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 11.58it/s]                                                                                          rtf_avg: 0.004: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 11.57it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.27s/it][A
-{'load_data': '0.000', 'extract_feat': '0.005', 'forward': '4.266', 'batch_size': '1', 'rtf': '0.180'}, : 100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.27s/it][A
-rtf_avg: 0.180: 100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.27s/it]                                                                                          [Artf_avg: 0.180: 100%|[34m██████████[0m| 1/1 [00:04<00:00,  4.27s/it]
-100%|[31m██████████[0m| 1/1 [00:04<00:00,  4.32s/it]rtf_avg: 0.180, time_speech:  23.760, time_escape: 4.269: 100%|[31m██████████[0m| 1/1 [00:04<00:00,  4.32s/it]rtf_avg: 0.180, time_speech:  23.760, time_escape: 4.269: 100%|[31m██████████[0m| 1/1 [00:04<00:00,  4.32s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.057', 'extract_feat': '0.002', 'forward': '0.069', 'batch_size': '1', 'rtf': '0.009'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.41it/s]rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.39it/s]                                                                                          rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 14.37it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.49s/it][A
-{'load_data': '0.000', 'extract_feat': '0.004', 'forward': '1.485', 'batch_size': '1', 'rtf': '0.185'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.49s/it][A
-rtf_avg: 0.185: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.49s/it]                                                                                          [Artf_avg: 0.185: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.49s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.54s/it]rtf_avg: 0.184, time_speech:  8.070, time_escape: 1.488: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.54s/it]rtf_avg: 0.184, time_speech:  8.070, time_escape: 1.488: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.54s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.052', 'extract_feat': '0.002', 'forward': '0.058', 'batch_size': '1', 'rtf': '0.026'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.34it/s]rtf_avg: 0.026: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.30it/s]                                                                                          rtf_avg: 0.026: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.28it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.44it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.692', 'batch_size': '1', 'rtf': '0.312'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.44it/s][A
-rtf_avg: 0.312: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.44it/s]                                                                                          [Artf_avg: 0.312: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.44it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.34it/s]rtf_avg: 0.312, time_speech:  2.230, time_escape: 0.695: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.34it/s]rtf_avg: 0.312, time_speech:  2.230, time_escape: 0.695: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.34it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.050', 'extract_feat': '0.003', 'forward': '0.061', 'batch_size': '1', 'rtf': '0.010'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.49it/s]rtf_avg: 0.010: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.46it/s]                                                                                          rtf_avg: 0.010: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.44it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.18s/it][A
-{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '1.177', 'batch_size': '1', 'rtf': '0.187'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.18s/it][A
-rtf_avg: 0.187: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.18s/it]                                                                                          [Artf_avg: 0.187: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.18s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.23s/it]rtf_avg: 0.187, time_speech:  6.320, time_escape: 1.180: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.23s/it]rtf_avg: 0.187, time_speech:  6.320, time_escape: 1.180: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.23s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.055', 'extract_feat': '0.002', 'forward': '0.066', 'batch_size': '1', 'rtf': '0.009'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.06it/s]rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.03it/s]                                                                                          rtf_avg: 0.009: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.02it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.66s/it][A
-{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '1.657', 'batch_size': '1', 'rtf': '0.217'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.66s/it][A
-rtf_avg: 0.217: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.66s/it]                                                                                          [Artf_avg: 0.217: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.66s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.71s/it]rtf_avg: 0.218, time_speech:  7.620, time_escape: 1.660: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.71s/it]rtf_avg: 0.218, time_speech:  7.620, time_escape: 1.660: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.71s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.051', 'extract_feat': '0.002', 'forward': '0.059', 'batch_size': '1', 'rtf': '0.020'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.98it/s]rtf_avg: 0.020: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.95it/s]                                                                                          rtf_avg: 0.020: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.93it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.49it/s][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '0.672', 'batch_size': '1', 'rtf': '0.229'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.49it/s][A
-rtf_avg: 0.229: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.49it/s]                                                                                          [Artf_avg: 0.229: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.49it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.37it/s]rtf_avg: 0.225, time_speech:  3.000, time_escape: 0.676: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.37it/s]rtf_avg: 0.225, time_speech:  3.000, time_escape: 0.676: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.37it/s]
-INFO:     127.0.0.1:40916 - "POST /asr_sd HTTP/1.1" 200 OK
-2026-01-22 11:17:56,589 - modelscope - INFO - Doing VAD...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '0.017', 'batch_size': '1', 'rtf': '0.001'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 57.97it/s]rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 57.60it/s]                                                                                          rtf_avg: 0.001: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 57.33it/s]
-2026-01-22 11:17:56,607 - modelscope - INFO - Doing segmentation...
-2026-01-22 11:17:56,607 - modelscope - INFO - Extracting embeddings...
-2026-01-22 11:17:56,802 - modelscope - INFO - Clustering...
-2026-01-22 11:17:56,802 - modelscope - INFO - Post processing...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.050', 'extract_feat': '0.002', 'forward': '0.057', 'batch_size': '1', 'rtf': '0.014'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.38it/s]rtf_avg: 0.014: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.34it/s]                                                                                          rtf_avg: 0.014: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.32it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.17it/s][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '0.460', 'batch_size': '1', 'rtf': '0.108'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.17it/s][A
-rtf_avg: 0.108: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.17it/s]                                                                                          [Artf_avg: 0.108: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.17it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.94it/s]rtf_avg: 0.108, time_speech:  4.270, time_escape: 0.463: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.94it/s]rtf_avg: 0.108, time_speech:  4.270, time_escape: 0.463: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.94it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.002', 'forward': '0.054', 'batch_size': '1', 'rtf': '0.026'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.55it/s]rtf_avg: 0.026: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.52it/s]                                                                                          rtf_avg: 0.026: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.49it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.10it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.244', 'batch_size': '1', 'rtf': '0.116'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.10it/s][A
-rtf_avg: 0.116: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.10it/s]                                                                                          [Artf_avg: 0.116: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  4.09it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.37it/s]rtf_avg: 0.117, time_speech:  2.120, time_escape: 0.248: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.37it/s]rtf_avg: 0.117, time_speech:  2.120, time_escape: 0.248: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  3.37it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.049', 'extract_feat': '0.002', 'forward': '0.054', 'batch_size': '1', 'rtf': '0.028'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.58it/s]rtf_avg: 0.028: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.53it/s]                                                                                          rtf_avg: 0.028: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 18.50it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.36it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.298', 'batch_size': '1', 'rtf': '0.155'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.36it/s][A
-rtf_avg: 0.155: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.36it/s]                                                                                          [Artf_avg: 0.155: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.35it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.86it/s]rtf_avg: 0.158, time_speech:  1.910, time_escape: 0.301: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.86it/s]rtf_avg: 0.158, time_speech:  1.910, time_escape: 0.301: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  2.86it/s]
-INFO:     127.0.0.1:35780 - "POST /asr_sd HTTP/1.1" 200 OK
-2026-01-22 11:23:54,350 - modelscope - INFO - Doing VAD...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]100%|[34m██████████[0m| 1/1 [00:00<00:00,  5.89it/s]{'load_data': '0.000', 'extract_feat': '0.100', 'forward': '0.170', 'batch_size': '1', 'rtf': '0.003'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  5.89it/s]rtf_avg: 0.003: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  5.89it/s]                                                                                          rtf_avg: 0.003: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  5.88it/s]
-2026-01-22 11:23:54,523 - modelscope - INFO - Doing segmentation...
-2026-01-22 11:23:54,523 - modelscope - INFO - Extracting embeddings...
-2026-01-22 11:23:57,548 - modelscope - INFO - Clustering...
-2026-01-22 11:23:57,552 - modelscope - INFO - Post processing...
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.053', 'extract_feat': '0.007', 'forward': '0.093', 'batch_size': '1', 'rtf': '0.003'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 10.76it/s]rtf_avg: 0.003: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 10.75it/s]                                                                                          rtf_avg: 0.003: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 10.74it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.74it/s][A
-{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.267', 'batch_size': '1', 'rtf': '0.557'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.74it/s][A
-rtf_avg: 0.557: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.74it/s]                                                                                          [Artf_avg: 0.557: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  3.74it/s]
-
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:05<00:00,  5.97s/it][A
-{'load_data': '0.000', 'extract_feat': '0.006', 'forward': '5.970', 'batch_size': '1', 'rtf': '0.199'}, : 100%|[34m██████████[0m| 1/1 [00:05<00:00,  5.97s/it][A
-rtf_avg: 0.199: 100%|[34m██████████[0m| 1/1 [00:05<00:00,  5.97s/it]                                                                                          [Artf_avg: 0.199: 100%|[34m██████████[0m| 1/1 [00:05<00:00,  5.97s/it]
-100%|[31m██████████[0m| 1/1 [00:06<00:00,  6.30s/it]rtf_avg: 0.205, time_speech:  30.490, time_escape: 6.244: 100%|[31m██████████[0m| 1/1 [00:06<00:00,  6.30s/it]rtf_avg: 0.205, time_speech:  30.490, time_escape: 6.244: 100%|[31m██████████[0m| 1/1 [00:06<00:00,  6.30s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.054', 'extract_feat': '0.003', 'forward': '0.079', 'batch_size': '1', 'rtf': '0.004'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 12.70it/s]rtf_avg: 0.004: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 12.68it/s]                                                                                          rtf_avg: 0.004: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 12.67it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:03<00:00,  3.10s/it][A
-{'load_data': '0.000', 'extract_feat': '0.004', 'forward': '3.100', 'batch_size': '1', 'rtf': '0.170'}, : 100%|[34m██████████[0m| 1/1 [00:03<00:00,  3.10s/it][A
-rtf_avg: 0.170: 100%|[34m██████████[0m| 1/1 [00:03<00:00,  3.10s/it]                                                                                          [Artf_avg: 0.170: 100%|[34m██████████[0m| 1/1 [00:03<00:00,  3.10s/it]
-100%|[31m██████████[0m| 1/1 [00:03<00:00,  3.15s/it]rtf_avg: 0.170, time_speech:  18.260, time_escape: 3.103: 100%|[31m██████████[0m| 1/1 [00:03<00:00,  3.15s/it]rtf_avg: 0.170, time_speech:  18.260, time_escape: 3.103: 100%|[31m██████████[0m| 1/1 [00:03<00:00,  3.15s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.051', 'extract_feat': '0.002', 'forward': '0.058', 'batch_size': '1', 'rtf': '0.015'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.25it/s]rtf_avg: 0.015: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.22it/s]                                                                                          rtf_avg: 0.015: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 17.19it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s][A
-{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '0.680', 'batch_size': '1', 'rtf': '0.172'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s][A
-rtf_avg: 0.172: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s]                                                                                          [Artf_avg: 0.172: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  1.47it/s]
-100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]rtf_avg: 0.172, time_speech:  3.980, time_escape: 0.685: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]rtf_avg: 0.172, time_speech:  3.980, time_escape: 0.685: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.36it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.053', 'extract_feat': '0.003', 'forward': '0.075', 'batch_size': '1', 'rtf': '0.005'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.31it/s]rtf_avg: 0.005: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.29it/s]                                                                                          rtf_avg: 0.005: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.27it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.66s/it][A
-{'load_data': '0.000', 'extract_feat': '0.004', 'forward': '2.664', 'batch_size': '1', 'rtf': '0.164'}, : 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.66s/it][A
-rtf_avg: 0.164: 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.66s/it]                                                                                          [Artf_avg: 0.164: 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.66s/it]
-100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.72s/it]rtf_avg: 0.165, time_speech:  16.190, time_escape: 2.667: 100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.72s/it]rtf_avg: 0.165, time_speech:  16.190, time_escape: 2.667: 100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.72s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.052', 'extract_feat': '0.005', 'forward': '0.075', 'batch_size': '1', 'rtf': '0.005'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.40it/s]rtf_avg: 0.005: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.38it/s]                                                                                          rtf_avg: 0.005: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.36it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.63s/it][A
-{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '2.631', 'batch_size': '1', 'rtf': '0.180'}, : 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.63s/it][A
-rtf_avg: 0.180: 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.63s/it]                                                                                          [Artf_avg: 0.180: 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.63s/it]
-100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.69s/it]rtf_avg: 0.180, time_speech:  14.670, time_escape: 2.634: 100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.69s/it]rtf_avg: 0.180, time_speech:  14.670, time_escape: 2.634: 100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.69s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.053', 'extract_feat': '0.002', 'forward': '0.065', 'batch_size': '1', 'rtf': '0.008'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.35it/s]rtf_avg: 0.008: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.32it/s]                                                                                          rtf_avg: 0.008: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 15.30it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.72s/it][A
-{'load_data': '0.000', 'extract_feat': '0.002', 'forward': '1.721', 'batch_size': '1', 'rtf': '0.209'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.72s/it][A
-rtf_avg: 0.209: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.72s/it]                                                                                          [Artf_avg: 0.209: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.72s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.78s/it]rtf_avg: 0.209, time_speech:  8.260, time_escape: 1.724: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.78s/it]rtf_avg: 0.209, time_speech:  8.260, time_escape: 1.724: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.78s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.051', 'extract_feat': '0.002', 'forward': '0.060', 'batch_size': '1', 'rtf': '0.012'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.74it/s]rtf_avg: 0.012: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.71it/s]                                                                                          rtf_avg: 0.012: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 16.69it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.03s/it][A
-{'load_data': '0.000', 'extract_feat': '0.003', 'forward': '1.027', 'batch_size': '1', 'rtf': '0.214'}, : 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.03s/it][A
-rtf_avg: 0.214: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.03s/it]                                                                                          [Artf_avg: 0.214: 100%|[34m██████████[0m| 1/1 [00:01<00:00,  1.03s/it]
-100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.08s/it]rtf_avg: 0.214, time_speech:  4.830, time_escape: 1.032: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.08s/it]rtf_avg: 0.214, time_speech:  4.830, time_escape: 1.032: 100%|[31m██████████[0m| 1/1 [00:01<00:00,  1.08s/it]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s]{'load_data': '0.054', 'extract_feat': '0.003', 'forward': '0.073', 'batch_size': '1', 'rtf': '0.005'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.71it/s]rtf_avg: 0.005: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.69it/s]                                                                                          rtf_avg: 0.005: 100%|[34m██████████[0m| 1/1 [00:00<00:00, 13.67it/s]
-  0%|[31m          [0m| 0/1 [00:00<?, ?it/s]
-  0%|[34m          [0m| 0/1 [00:00<?, ?it/s][AThe attention mask and the pad token id were not set. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-
-100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.94s/it][A
-{'load_data': '0.000', 'extract_feat': '0.006', 'forward': '2.936', 'batch_size': '1', 'rtf': '0.204'}, : 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.94s/it][A
-rtf_avg: 0.204: 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.94s/it]                                                                                          [Artf_avg: 0.204: 100%|[34m██████████[0m| 1/1 [00:02<00:00,  2.94s/it]
-100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.99s/it]rtf_avg: 0.204, time_speech:  14.420, time_escape: 2.941: 100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.99s/it]rtf_avg: 0.204, time_speech:  14.420, time_escape: 2.941: 100%|[31m██████████[0m| 1/1 [00:02<00:00,  2.99s/it]
-INFO:     127.0.0.1:40002 - "POST /asr_sd HTTP/1.1" 200 OK
+100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.19it/s][A
+{'load_data': '0.000', 'extract_feat': '0.001', 'forward': '0.457', 'batch_size': '1', 'rtf': '0.282'}, : 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.19it/s][A
+rtf_avg: 0.282: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.19it/s]                                                                                          [Artf_avg: 0.282: 100%|[34m██████████[0m| 1/1 [00:00<00:00,  2.18it/s]
+100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.94it/s]rtf_avg: 0.278, time_speech:  1.660, time_escape: 0.461: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.94it/s]rtf_avg: 0.278, time_speech:  1.660, time_escape: 0.461: 100%|[31m██████████[0m| 1/1 [00:00<00:00,  1.93it/s]
+INFO:     127.0.0.1:49440 - "POST /asr_sd HTTP/1.1" 200 OK

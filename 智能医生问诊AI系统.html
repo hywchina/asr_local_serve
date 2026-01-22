@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能医生问诊AI系统</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  header {
+    background: linear-gradient(to right, #1e90ff, #1a7feb);
+    color: #fff;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .logo-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo {
+    font-size: 24px;
+    margin-right: 10px;
+  }
+  
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  
+  .header-controls {
+    display: flex;
+    align-items: center;
+  }
+  
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    font-size: 14px;
+  }
+  
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin-right: 8px;
+  }
+  
+  .status-dot.active {
+    background-color: #4cd964;
+    box-shadow: 0 0 5px #4cd964;
+  }
+  
+  .container {
+    display: flex;
+    height: calc(100vh - 60px);
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .left, .right {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+    overflow-y: auto;
+  }
+  
+  .left {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .right {
+    width: 50%;
+  }
+  
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1e90ff;
+    display: flex;
+    align-items: center;
+  }
+  
+  .section-title i {
+    margin-right: 10px;
+  }
+  
+  .buttons {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 10px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  button i {
+    margin-right: 8px;
+  }
+  
+  #startBtn {
+    background: linear-gradient(to right, #4cd964, #2bc653);
+    color: white;
+  }
+  
+  #startBtn:hover:not(:disabled) {
+    background: linear-gradient(to right, #2bc653, #1fa83e);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(44, 203, 89, 0.3);
+  }
+  
+  #pauseBtn {
+    background: linear-gradient(to right, #ff9500, #e68600);
+    color: white;
+  }
+  
+  #pauseBtn:hover:not(:disabled) {
+    background: linear-gradient(to right, #e68600, #cc7700);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 149, 0, 0.3);
+  }
+  
+  #stopBtn {
+    background: linear-gradient(to right, #ff3b30, #e0352b);
+    color: white;
+  }
+  
+  #stopBtn:hover:not(:disabled) {
+    background: linear-gradient(to right, #e0352b, #c12f25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 59, 48, 0.3);
+  }
+  
+  #exportBtn {
+    background: linear-gradient(to right, #5ac8fa, #34aadc);
+    color: white;
+  }
+  
+  #exportBtn:hover:not(:disabled) {
+    background: linear-gradient(to right, #34aadc, #2b93c0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(90, 200, 250, 0.3);
+  }
+  
+  button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .transcript-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .transcript-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+  
+  .transcript {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 8px;
+    background: #fafafa;
+    min-height: 300px;
+  }
+  
+  .message {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+    max-width: 80%;
+  }
+  
+  /* 身份设置前的样式 - 所有消息在左侧 */
+  .message-left {
+    background-color: #f0f0f0;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    margin-right: auto;
+  }
+  
+  /* 身份设置后的样式 - 患者方消息在左侧 */
+  .patient-side {
+    background-color: #e8f5e9;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    margin-right: auto;
+  }
+  
+  /* 身份设置后的样式 - 医院方消息在右侧 */
+  .hospital-side {
+    background-color: #e3f2fd;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+  }
+  
+  .message-time {
+    font-size: 11px;
+    color: #999;
+    text-align: right;
+    margin-top: 5px;
+  }
+  
+  .speaker-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .patient-side .speaker-label {
+    color: #4caf50;
+  }
+  
+  .hospital-side .speaker-label {
+    color: #1e90ff;
+  }
+  
+  .message-left .speaker-label {
+    color: #666;
+  }
+  
+  .report {
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+  
+  .report-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed #e0e0e0;
+  }
+  
+  .report-section:last-child {
+    border-bottom: none;
+  }
+  
+  .report-section h4 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #333;
+    display: flex;
+    align-items: center;
+  }
+  
+  .report-section h4 i {
+    margin-right: 8px;
+    color: #1e90ff;
+  }
+  
+  .report-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .highlight {
+    background-color: #fff9c4;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  
+  .report-item {
+    margin-bottom: 8px;
+  }
+  
+  .report-label {
+    font-weight: 600;
+    color: #555;
+    display: inline-block;
+    width: 100px;
+  }
+  
+  .report-value {
+    color: #333;
+  }
+  
+  .simulation-controls {
+    display: flex;
+    margin-top: 20px;
+    gap: 10px;
+  }
+  
+  .simulation-controls select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+  }
+  
+  .speaker-mapping-section {
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+  
+  .speaker-mapping-section.collapsed {
+    max-height: 60px;
+    overflow: hidden;
+  }
+  
+  .speaker-mapping-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    cursor: pointer;
+  }
+  
+  .speaker-mapping-header h3 {
+    margin: 0;
+    color: #1e90ff;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .speaker-mapping-header h3 i {
+    margin-right: 8px;
+  }
+  
+  .toggle-icon {
+    transition: transform 0.3s ease;
+  }
+  
+  .speaker-mapping-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+  }
+  
+  .speaker-mapping-form {
+    margin-bottom: 15px;
+  }
+  
+  .speaker-mapping-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #e0e0e0;
+  }
+  
+  .speaker-mapping-item:last-child {
+    border-bottom: none;
+  }
+  
+  .speaker-id-display {
+    width: 100px;
+    font-weight: 600;
+    color: #555;
+  }
+  
+  .speaker-role-select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    margin-right: 10px;
+    flex: 1;
+  }
+  
+  .speaker-name-input {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    flex: 2;
+  }
+  
+  .position-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 15px;
+  }
+  
+  .mapping-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .mapping-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .mapping-btn-primary {
+    background: #1e90ff;
+    color: white;
+  }
+  
+  .mapping-btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+  }
+  
+  .generate-report-btn {
+    background: linear-gradient(to right, #9c27b0, #7b1fa2);
+    color: white;
+    margin-top: 10px;
+  }
+  
+  .generate-report-btn:hover:not(:disabled) {
+    background: linear-gradient(to right, #7b1fa2, #6a1b9a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(156, 39, 176, 0.3);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @media (max-width: 1024px) {
+    .container {
+      flex-direction: column;
+      height: auto;
+    }
+    
+    .left, .right {
+      width: 100%;
+    }
+  }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<header>
+  <div class="logo-container">
+    <div class="logo">
+      <i class="fas fa-stethoscope"></i>
+    </div>
+    <h1>智能医生问诊AI系统</h1>
+  </div>
+  <div class="header-controls">
+    <div class="status-indicator">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">就绪</span>
+    </div>
+    <button id="exportBtn"><i class="fas fa-download"></i> 导出报告</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="left">
+    <div class="section-title">
+      <i class="fas fa-comments"></i> 问诊对话
+    </div>
+    
+    <div class="buttons">
+      <button id="startBtn"><i class="fas fa-play"></i> 开始问诊</button>
+      <button id="pauseBtn" disabled><i class="fas fa-pause"></i> 暂停</button>
+      <button id="stopBtn" disabled><i class="fas fa-stop"></i> 结束问诊</button>
+    </div>
+    
+    <div class="transcript-container">
+      <div class="transcript-header">
+        <div>实时对话转录</div>
+        <div id="transcriptCounter">0 条对话</div>
+      </div>
+      <div class="transcript" id="transcript">
+        <!-- 对话将在这里显示 -->
+        <div class="message message-left">
+          <div class="speaker-label">说话人1</div>
+          <div>您好，请问是医生吗？</div>
+          <div class="message-time">09:00:00</div>
+        </div>
+        <div class="message message-left">
+          <div class="speaker-label">说话人2</div>
+          <div>是的，我是医生。请坐，请问您哪里不舒服？</div>
+          <div class="message-time">09:00:10</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="simulation-controls">
+      <div>模拟场景：</div>
+      <select id="scenarioSelect">
+        <option value="headache">头痛症状（2人对话）</option>
+        <option value="multiparty">多人会诊（3人对话）</option>
+        <option value="family">家属陪诊（4人对话）</option>
+        <option value="complex">复杂会诊（5人对话）</option>
+      </select>
+      <button id="resetBtn"><i class="fas fa-redo"></i> 重置</button>
+    </div>
+    
+    <div class="speaker-mapping-section collapsed" id="speakerMappingSection">
+      <div class="speaker-mapping-header" id="speakerMappingHeader">
+        <h3><i class="fas fa-user-tag"></i> 说话人身份设置</h3>
+        <div class="toggle-icon">
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+      <div class="speaker-mapping-body" id="speakerMappingBody">
+        <p class="position-hint"><i class="fas fa-info-circle"></i> 提示：问诊结束后，请为检测到的说话人分配身份。设置为"医生"或"护士"身份的消息将显示在右侧，其他身份消息显示在左侧。</p>
+        <div class="speaker-mapping-form" id="speakerMappingForm">
+          <div id="speakerMappingEmptyMessage" style="color: #999; text-align: center; padding: 20px;">
+            问诊结束后，将自动检测说话人数量并显示在这里
+          </div>
+        </div>
+        <div class="mapping-buttons">
+          <button class="mapping-btn mapping-btn-secondary" id="cancelMappingBtn" disabled>重置设置</button>
+          <button class="mapping-btn mapping-btn-primary" id="saveMappingBtn" disabled>应用设置</button>
+        </div>
+        <button class="mapping-btn mapping-btn-primary generate-report-btn" id="generateReportBtn" disabled><i class="fas fa-file-medical-alt"></i> 生成结构化报告</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="right">
+    <div class="section-title">
+      <i class="fas fa-file-medical-alt"></i> 结构化报告
+    </div>
+    
+    <div class="report" id="report">
+      <div class="report-section">
+        <h4><i class="fas fa-user"></i> 病人基本信息</h4>
+        <div class="report-content">
+          <div class="report-item">
+            <span class="report-label">姓名：</span>
+            <span class="report-value" id="patientName">未知</span>
+          </div>
+          <div class="report-item">
+            <span class="report-label">性别：</span>
+            <span class="report-value" id="patientGender">未知</span>
+          </div>
+          <div class="report-item">
+            <span class="report-label">年龄：</span>
+            <span class="report-value" id="patientAge">未知</span>
+          </div>
+          <div class="report-item">
+            <span class="report-label">就诊时间：</span>
+            <span class="report-value" id="visitTime">未知</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="report-section">
+        <h4><i class="fas fa-comment-medical"></i> 病人自述</h4>
+        <div class="report-content" id="patientReport">
+          <p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>
+        </div>
+      </div>
+      
+      <div class="report-section">
+        <h4><i class="fas fa-stethoscope"></i> 医生问诊摘要</h4>
+        <div class="report-content" id="doctorReport">
+          <p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>
+        </div>
+      </div>
+      
+      <div class="report-section">
+        <h4><i class="fas fa-diagnoses"></i> 初步诊断与建议</h4>
+        <div class="report-content" id="diagnosisReport">
+          <p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 模拟数据 - 不同场景
+  const scenarios = {
+    headache: {
+      name: "头痛症状（2人对话）",
+      patientInfo: {
+        name: "张三",
+        gender: "男",
+        age: "35岁"
+      },
+      dialogue: [
+        {speakerId: 1, text: '您好，请问是医生吗？', time: '09:00:00'},
+        {speakerId: 2, text: '是的，我是医生。请坐，请问您哪里不舒服？', time: '09:00:10'},
+        {speakerId: 1, text: '医生，我最近头痛得很厉害，已经持续一周了。', time: '09:00:25'},
+        {speakerId: 2, text: '具体是哪个部位疼痛？是持续痛还是阵痛？', time: '09:00:40'},
+        {speakerId: 1, text: '主要是太阳穴和额头这一块，一阵一阵的痛，特别是下午和晚上比较明显。', time: '09:00:55'},
+        {speakerId: 2, text: '有没有恶心、呕吐或者视力模糊的情况？', time: '09:01:15'},
+        {speakerId: 1, text: '有时候会有点恶心，但没有呕吐，视力正常。', time: '09:01:30'},
+        {speakerId: 2, text: '最近工作压力大吗？睡眠怎么样？', time: '09:01:50'},
+        {speakerId: 1, text: '最近项目比较忙，经常熬夜，睡眠不太好。', time: '09:02:05'},
+        {speakerId: 2, text: '以前有没有类似的头痛经历？有没有高血压病史？', time: '09:02:25'},
+        {speakerId: 1, text: '以前偶尔也会头痛，但没有这次严重。血压正常，体检时检查过。', time: '09:02:40'},
+        {speakerId: 2, text: '根据您的描述，初步判断可能是紧张性头痛，与压力和睡眠不足有关。建议您注意休息，避免长时间用眼，可以适当热敷。如果疼痛持续，可以考虑使用一些镇痛药物。', time: '09:03:10'},
+        {speakerId: 1, text: '好的，谢谢医生。我需要做进一步检查吗？', time: '09:03:30'},
+        {speakerId: 2, text: '如果一周后症状没有缓解，或者出现其他症状，建议您来做一次头部CT检查。', time: '09:03:50'}
+      ],
+      report: {
+        patient: "患者自述头痛症状明显，持续约一周，主要疼痛部位在太阳穴和额头，呈阵发性疼痛，下午和晚上加重。伴有轻微恶心感，无呕吐、视力模糊等症状。近期工作压力大，睡眠不足。",
+        doctor: "医生详细询问了头痛部位、性质、持续时间、伴随症状，以及工作压力、睡眠情况、既往病史等。重点关注了是否有神经系统相关症状。",
+        diagnosis: "初步诊断：紧张性头痛。建议：1. 注意休息，保证充足睡眠；2. 避免长时间使用电子产品；3. 适当热敷疼痛部位；4. 如疼痛明显，可服用非处方镇痛药（如布洛芬）；5. 若症状一周内无缓解或加重，建议进行头部CT检查。"
+      },
+      // 默认的说话人映射
+      defaultSpeakerMapping: {
+        1: { role: 'patient', name: '患者1' },
+        2: { role: 'doctor', name: '医生' }
+      }
+    },
+    multiparty: {
+      name: "多人会诊（3人对话）",
+      patientInfo: {
+        name: "李芳",
+        gender: "女",
+        age: "45岁"
+      },
+      dialogue: [
+        {speakerId: 1, text: '您好，我是心血管科的王主任。', time: '10:15:00'},
+        {speakerId: 2, text: '您好王主任，我是呼吸科的张医生。', time: '10:15:05'},
+        {speakerId: 3, text: '医生们好，我最近胸口闷，呼吸有点困难。', time: '10:15:15'},
+        {speakerId: 1, text: '这种情况多久了？有没有心慌、心悸的感觉？', time: '10:15:30'},
+        {speakerId: 3, text: '大概三四天了，有时候会心慌。', time: '10:15:45'},
+        {speakerId: 2, text: '咳嗽吗？有没有痰？什么颜色的？', time: '10:16:00'},
+        {speakerId: 3, text: '偶尔咳嗽，有一点白色的痰。', time: '10:16:15'},
+        {speakerId: 1, text: '根据您的描述，需要做心电图和心脏彩超检查。', time: '10:16:30'},
+        {speakerId: 2, text: '我建议也做个胸部CT，排除肺部问题。', time: '10:16:45'},
+        {speakerId: 1, text: '是的，需要多科室会诊，综合判断。', time: '10:17:00'}
+      ],
+      report: {
+        patient: "患者自述胸口闷，呼吸困难三四天，伴有心慌、心悸，偶有咳嗽，咳白色痰。",
+        doctor: "心血管科和呼吸科医生联合会诊，询问了症状持续时间、伴随症状，建议进行心电图、心脏彩超和胸部CT检查。",
+        diagnosis: "初步诊断：心肺联合问题待查。建议：1. 心电图检查；2. 心脏彩超检查；3. 胸部CT检查；4. 多科室会诊明确诊断。"
+      },
+      defaultSpeakerMapping: {
+        1: { role: 'doctor', name: '王主任' },
+        2: { role: 'doctor', name: '张医生' },
+        3: { role: 'patient', name: '患者1' }
+      }
+    },
+    family: {
+      name: "家属陪诊（4人对话）",
+      patientInfo: {
+        name: "王明",
+        gender: "男",
+        age: "68岁"
+      },
+      dialogue: [
+        {speakerId: 1, text: '医生您好，这是我父亲，他最近头晕得厉害。', time: '14:30:00'},
+        {speakerId: 2, text: '老人家，请坐。头晕多久了？是什么样的感觉？', time: '14:30:10'},
+        {speakerId: 3, text: '大概一个星期了，感觉天旋地转的，站不稳。', time: '14:30:25'},
+        {speakerId: 1, text: '父亲有高血压病史，一直在吃药。', time: '14:30:40'},
+        {speakerId: 4, text: '我是他女儿，父亲最近食欲也不好，吃得很少。', time: '14:30:55'},
+        {speakerId: 2, text: '血压控制得怎么样？最近有没有摔跤？', time: '14:31:10'},
+        {speakerId: 3, text: '血压有时候高，前天差点摔倒。', time: '14:31:25'},
+        {speakerId: 1, text: '我们很担心，需要做什么检查吗？', time: '14:31:40'},
+        {speakerId: 2, text: '需要做头部CT和颈动脉超声，排除脑血管问题。', time: '14:31:55'},
+        {speakerId: 4, text: '医生，这个严重吗？需要住院吗？', time: '14:32:10'},
+        {speakerId: 2, text: '先检查看看，如果有必要的话需要住院观察。', time: '14:32:25'}
+      ],
+      report: {
+        patient: "患者（68岁男性）头晕一周，感觉天旋地转，站不稳。有高血压病史，血压控制不稳定，食欲不振，几乎摔倒。",
+        doctor: "医生询问了头晕症状、持续时间、伴随症状，家属提供了高血压病史和食欲不振情况。",
+        diagnosis: "初步诊断：眩晕症（原因待查）。建议：1. 头部CT检查；2. 颈动脉超声检查；3. 监测血压；4. 必要时住院观察。"
+      },
+      defaultSpeakerMapping: {
+        1: { role: 'family', name: '儿子' },
+        2: { role: 'doctor', name: '医生' },
+        3: { role: 'patient', name: '患者' },
+        4: { role: 'family', name: '女儿' }
+      }
+    },
+    complex: {
+      name: "复杂会诊（5人对话）",
+      patientInfo: {
+        name: "刘建国",
+        gender: "男",
+        age: "72岁"
+      },
+      dialogue: [
+        {speakerId: 1, text: '各位医生好，我是患者的主治医生李医生。', time: '15:20:00'},
+        {speakerId: 2, text: '我是神经内科的赵主任。', time: '15:20:05'},
+        {speakerId: 3, text: '我是影像科的刘医生。', time: '15:20:10'},
+        {speakerId: 4, text: '医生们好，我是患者的妻子。', time: '15:20:20'},
+        {speakerId: 5, text: '医生们好，我是患者本人。', time: '15:20:30'},
+        {speakerId: 1, text: '患者有长期的糖尿病史，最近出现记忆力减退和行走不稳。', time: '15:20:40'},
+        {speakerId: 5, text: '是的，我最近老是忘事，走路也感觉不稳。', time: '15:20:55'},
+        {speakerId: 4, text: '他上周还在家里摔了一跤。', time: '15:21:10'},
+        {speakerId: 2, text: '根据CT结果，患者有轻微的脑萎缩和腔隙性脑梗死。', time: '15:21:25'},
+        {speakerId: 3, text: 'MRI显示有多发性的小缺血灶。', time: '15:21:40'},
+        {speakerId: 1, text: '综合来看，应该是血管性痴呆的早期表现。', time: '15:22:00'},
+        {speakerId: 2, text: '同意，需要控制危险因素，包括血压、血糖和血脂。', time: '15:22:15'},
+        {speakerId: 5, text: '那我应该怎么治疗？', time: '15:22:30'},
+        {speakerId: 1, text: '我们会制定一个综合治疗方案，包括药物治疗和康复训练。', time: '15:22:45'}
+      ],
+      report: {
+        patient: "患者（72岁男性）有长期糖尿病史，近期出现记忆力减退、行走不稳，曾在家中摔倒。",
+        doctor: "多科室医生会诊，包括主治医生、神经内科主任、影像科医生共同讨论患者病情，结合CT和MRI结果进行诊断。",
+        diagnosis: "初步诊断：血管性痴呆早期。建议：1. 严格控制血压、血糖、血脂；2. 药物治疗改善脑循环；3. 认知康复训练；4. 定期复查影像学检查；5. 预防摔倒，注意居家安全。"
+      },
+      defaultSpeakerMapping: {
+        1: { role: 'doctor', name: '李医生' },
+        2: { role: 'doctor', name: '赵主任' },
+        3: { role: 'doctor', name: '刘医生' },
+        4: { role: 'family', name: '妻子' },
+        5: { role: 'patient', name: '患者' }
+      }
+    }
+  };
+
+  // DOM元素
+  const transcriptEl = document.getElementById('transcript');
+  const transcriptCounter = document.getElementById('transcriptCounter');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const patientReport = document.getElementById('patientReport');
+  const doctorReport = document.getElementById('doctorReport');
+  const diagnosisReport = document.getElementById('diagnosisReport');
+  const exportBtn = document.getElementById('exportBtn');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const scenarioSelect = document.getElementById('scenarioSelect');
+  const resetBtn = document.getElementById('resetBtn');
+  const patientName = document.getElementById('patientName');
+  const patientGender = document.getElementById('patientGender');
+  const patientAge = document.getElementById('patientAge');
+  const visitTime = document.getElementById('visitTime');
+  const speakerMappingSection = document.getElementById('speakerMappingSection');
+  const speakerMappingHeader = document.getElementById('speakerMappingHeader');
+  const speakerMappingBody = document.getElementById('speakerMappingBody');
+  const speakerMappingForm = document.getElementById('speakerMappingForm');
+  const speakerMappingEmptyMessage = document.getElementById('speakerMappingEmptyMessage');
+  const cancelMappingBtn = document.getElementById('cancelMappingBtn');
+  const saveMappingBtn = document.getElementById('saveMappingBtn');
+  const generateReportBtn = document.getElementById('generateReportBtn');
+
+  // 状态变量
+  let interval = null;
+  let currentIndex = 0;
+  let isPlaying = false;
+  let isPaused = false;
+  let isMappingDone = false;
+  let isReportGenerated = false;
+  let currentScenario = scenarios[scenarioSelect.value];
+  let dialogue = [];
+  let speakerMapping = {};
+  let uniqueSpeakerIds = new Set();
+  let detectedSpeakerCount = 0;
+  
+  // 设置当前时间
+  function setCurrentTime() {
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0].replace(/-/g, '-');
+    const timeStr = now.toTimeString().split(' ')[0];
+    visitTime.textContent = `${dateStr} ${timeStr}`;
+  }
+  
+  // 设置初始时间
+  setCurrentTime();
+  
+  // 更新状态指示器
+  function updateStatus(isActive, text) {
+    if (isActive) {
+      statusDot.classList.add('active');
+    } else {
+      statusDot.classList.remove('active');
+    }
+    statusText.textContent = text;
+  }
+  
+  // 更新对话计数
+  function updateTranscriptCounter() {
+    const count = transcriptEl.querySelectorAll('.message').length;
+    transcriptCounter.textContent = `${count} 条对话`;
+  }
+  
+  // 判断是否为医院人员角色
+  function isHospitalStaff(role) {
+    return ['doctor', 'nurse'].includes(role);
+  }
+  
+  // 获取消息应该显示的位置样式
+  function getMessagePositionClass(speakerId) {
+    if (!isMappingDone) {
+      return 'message-left';
+    }
+    
+    const mapping = speakerMapping[speakerId];
+    if (mapping && isHospitalStaff(mapping.role)) {
+      return 'hospital-side';
+    } else {
+      return 'patient-side';
+    }
+  }
+  
+  // 获取说话人显示名称
+  function getSpeakerDisplayName(speakerId) {
+    if (isMappingDone && speakerMapping[speakerId]) {
+      return speakerMapping[speakerId].name;
+    } else {
+      return `说话人${speakerId}`;
+    }
+  }
+  
+  // 添加对话到转录区域
+  function appendTranscript(item) {
+    const messageDiv = document.createElement('div');
+    const positionClass = getMessagePositionClass(item.speakerId);
+    messageDiv.className = `message ${positionClass}`;
+    
+    const speakerName = getSpeakerDisplayName(item.speakerId);
+    const speakerLabel = document.createElement('div');
+    speakerLabel.className = 'speaker-label';
+    speakerLabel.textContent = speakerName;
+    
+    const textDiv = document.createElement('div');
+    textDiv.textContent = item.text;
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'message-time';
+    timeDiv.textContent = item.time || '未知时间';
+    
+    messageDiv.appendChild(speakerLabel);
+    messageDiv.appendChild(textDiv);
+    messageDiv.appendChild(timeDiv);
+    
+    // 存储说话人ID到数据属性
+    messageDiv.dataset.speakerId = item.speakerId;
+    
+    transcriptEl.appendChild(messageDiv);
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    
+    // 记录出现的说话人ID
+    uniqueSpeakerIds.add(item.speakerId);
+    
+    // 更新计数
+    updateTranscriptCounter();
+  }
+  
+  // 更新说话人身份映射表单
+  function updateSpeakerMappingForm() {
+    // 收集所有出现的说话人ID
+    const speakerIds = Array.from(uniqueSpeakerIds).sort((a, b) => a - b);
+    detectedSpeakerCount = speakerIds.length;
+    
+    // 清空表单
+    speakerMappingForm.innerHTML = '';
+    
+    if (speakerIds.length === 0) {
+      speakerMappingEmptyMessage.style.display = 'block';
+      return;
+    }
+    
+    speakerMappingEmptyMessage.style.display = 'none';
+    
+    // 为每个说话人ID创建映射项
+    speakerIds.forEach(speakerId => {
+      const mappingItem = document.createElement('div');
+      mappingItem.className = 'speaker-mapping-item';
+      
+      const speakerIdDisplay = document.createElement('div');
+      speakerIdDisplay.className = 'speaker-id-display';
+      speakerIdDisplay.textContent = `说话人${speakerId}`;
+      
+      const roleSelect = document.createElement('select');
+      roleSelect.className = 'speaker-role-select';
+      roleSelect.innerHTML = `
+        <option value="patient">患者</option>
+        <option value="family">家属/陪诊</option>
+        <option value="doctor">医生</option>
+        <option value="nurse">护士</option>
+        <option value="other">其他</option>
+      `;
+      
+      // 设置默认值
+      if (speakerMapping[speakerId]) {
+        roleSelect.value = speakerMapping[speakerId].role;
+      } else {
+        // 如果没有映射，根据对话内容猜测
+        if (speakerId === 2) {
+          roleSelect.value = 'doctor'; // 通常第二个说话人是医生
+        } else if (speakerId === 1) {
+          roleSelect.value = 'patient'; // 通常第一个说话人是患者
+        }
+      }
+      
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'speaker-name-input';
+      nameInput.placeholder = '输入姓名（如：王医生、患者1等）';
+      
+      // 设置默认值
+      if (speakerMapping[speakerId]) {
+        nameInput.value = speakerMapping[speakerId].name;
+      } else {
+        // 提供默认名称
+        if (speakerId === 2 && roleSelect.value === 'doctor') {
+          nameInput.value = '医生';
+        } else if (speakerId === 1 && roleSelect.value === 'patient') {
+          nameInput.value = '患者';
+        } else {
+          nameInput.value = `说话人${speakerId}`;
+        }
+      }
+      
+      mappingItem.appendChild(speakerIdDisplay);
+      mappingItem.appendChild(roleSelect);
+      mappingItem.appendChild(nameInput);
+      
+      // 存储speakerId到元素上，以便稍后使用
+      mappingItem.dataset.speakerId = speakerId;
+      roleSelect.dataset.speakerId = speakerId;
+      nameInput.dataset.speakerId = speakerId;
+      
+      speakerMappingForm.appendChild(mappingItem);
+    });
+    
+    // 启用设置按钮
+    cancelMappingBtn.disabled = false;
+    saveMappingBtn.disabled = false;
+  }
+  
+  // 生成结构化报告
+  function generateReport() {
+    if (!isMappingDone) {
+      alert('请先设置说话人身份并点击"应用设置"按钮');
+      return;
+    }
+    
+    // 收集患者相关的对话
+    let patientTexts = [];
+    let doctorTexts = [];
+    
+    const messages = transcriptEl.querySelectorAll('.message');
+    messages.forEach(msg => {
+      const speakerId = parseInt(msg.dataset.speakerId);
+      const mapping = speakerMapping[speakerId];
+      const text = msg.querySelector('div:nth-child(2)').textContent;
+      
+      if (mapping) {
+        if (mapping.role === 'patient' || mapping.role === 'family') {
+          patientTexts.push(text);
+        } else if (mapping.role === 'doctor' || mapping.role === 'nurse') {
+          doctorTexts.push(text);
+        }
+      }
+    });
+    
+    // 更新报告内容
+    patientReport.innerHTML = `<p>${patientTexts.join(' ')}</p>`;
+    doctorReport.innerHTML = `<p>${doctorTexts.join(' ')}</p>`;
+    diagnosisReport.innerHTML = `<p>${currentScenario.report.diagnosis}</p>`;
+    
+    // 更新患者信息
+    patientName.textContent = currentScenario.patientInfo.name;
+    patientGender.textContent = currentScenario.patientInfo.gender;
+    patientAge.textContent = currentScenario.patientInfo.age;
+    
+    isReportGenerated = true;
+    exportBtn.disabled = false;
+    
+    updateStatus(false, '报告已生成');
+  }
+  
+  // 开始模拟问诊
+  function startSimulation() {
+    if (isPlaying) return;
+    
+    isPlaying = true;
+    isPaused = false;
+    isMappingDone = false;
+    isReportGenerated = false;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    stopBtn.disabled = false;
+    exportBtn.disabled = true;
+    pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+    
+    updateStatus(true, '问诊中...');
+    
+    // 清空现有转录（除了初始的两条）
+    const initialMessages = transcriptEl.querySelectorAll('.message');
+    if (initialMessages.length > 2) {
+      for (let i = 2; i < initialMessages.length; i++) {
+        initialMessages[i].remove();
+      }
+    }
+    
+    // 重置索引
+    currentIndex = 0;
+    
+    // 从场景中获取对话
+    dialogue = [...currentScenario.dialogue];
+    uniqueSpeakerIds.clear();
+    
+    // 重置初始的两条消息的显示
+    const initialMessageElements = transcriptEl.querySelectorAll('.message');
+    initialMessageElements.forEach((msg, index) => {
+      if (index < 2) {
+        const speakerId = index === 0 ? 1 : 2;
+        msg.dataset.speakerId = speakerId;
+        const speakerLabel = msg.querySelector('.speaker-label');
+        if (speakerLabel) {
+          speakerLabel.textContent = getSpeakerDisplayName(speakerId);
+        }
+        uniqueSpeakerIds.add(speakerId);
+      }
+    });
+    
+    // 清空身份设置表单
+    speakerMappingForm.innerHTML = '';
+    speakerMappingEmptyMessage.style.display = 'block';
+    speakerMappingEmptyMessage.textContent = '问诊中，请等待问诊结束...';
+    cancelMappingBtn.disabled = true;
+    saveMappingBtn.disabled = true;
+    generateReportBtn.disabled = true;
+    
+    // 开始播放
+    interval = setInterval(() => {
+      if (currentIndex < dialogue.length) {
+        appendTranscript(dialogue[currentIndex]);
+        currentIndex++;
+      } else {
+        // 对话结束
+        clearInterval(interval);
+        isPlaying = false;
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        updateStatus(false, '问诊完成，请设置说话人身份');
+        
+        // 问诊结束后，更新身份设置表单
+        speakerMappingEmptyMessage.textContent = `问诊结束，共检测到 ${uniqueSpeakerIds.size} 个说话人`;
+        updateSpeakerMappingForm();
+        
+        // 展开身份设置区域
+        speakerMappingSection.classList.remove('collapsed');
+      }
+    }, 2000);
+  }
+  
+  // 暂停/继续模拟
+  function togglePause() {
+    if (!isPlaying) return;
+    
+    if (!isPaused) {
+      // 暂停
+      clearInterval(interval);
+      pauseBtn.innerHTML = '<i class="fas fa-play"></i> 继续';
+      updateStatus(true, '已暂停');
+    } else {
+      // 继续
+      interval = setInterval(() => {
+        if (currentIndex < dialogue.length) {
+          appendTranscript(dialogue[currentIndex]);
+          currentIndex++;
+        } else {
+          clearInterval(interval);
+          isPlaying = false;
+          startBtn.disabled = false;
+          pauseBtn.disabled = true;
+          stopBtn.disabled = true;
+          updateStatus(false, '问诊完成，请设置说话人身份');
+          
+          // 问诊结束后，更新身份设置表单
+          speakerMappingEmptyMessage.textContent = `问诊结束，共检测到 ${uniqueSpeakerIds.size} 个说话人`;
+          updateSpeakerMappingForm();
+          
+          // 展开身份设置区域
+          speakerMappingSection.classList.remove('collapsed');
+        }
+      }, 2000);
+      pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+      updateStatus(true, '问诊中...');
+    }
+    
+    isPaused = !isPaused;
+  }
+  
+  // 停止模拟
+  function stopSimulation() {
+    clearInterval(interval);
+    interval = null;
+    isPlaying = false;
+    isPaused = false;
+    
+    // 重置按钮状态
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+    
+    // 问诊结束后，更新身份设置表单
+    speakerMappingEmptyMessage.textContent = `问诊结束，共检测到 ${uniqueSpeakerIds.size} 个说话人`;
+    updateSpeakerMappingForm();
+    
+    // 展开身份设置区域
+    speakerMappingSection.classList.remove('collapsed');
+    
+    updateStatus(false, '问诊完成，请设置说话人身份');
+  }
+  
+  // 保存说话人映射
+  function saveSpeakerMapping() {
+    const mappingItems = speakerMappingForm.querySelectorAll('.speaker-mapping-item');
+    
+    mappingItems.forEach(item => {
+      const speakerId = parseInt(item.dataset.speakerId);
+      const roleSelect = item.querySelector('.speaker-role-select');
+      const nameInput = item.querySelector('.speaker-name-input');
+      
+      speakerMapping[speakerId] = {
+        role: roleSelect.value,
+        name: nameInput.value || `说话人${speakerId}`
+      };
+    });
+    
+    isMappingDone = true;
+    
+    // 更新对话显示
+    updateTranscriptDisplay();
+    
+    // 启用生成报告按钮
+    generateReportBtn.disabled = false;
+    
+    updateStatus(false, '身份设置已保存，可生成报告');
+  }
+  
+  // 重置说话人映射
+  function resetSpeakerMapping() {
+    speakerMapping = {};
+    updateSpeakerMappingForm();
+    isMappingDone = false;
+    updateTranscriptDisplay();
+    generateReportBtn.disabled = true;
+    exportBtn.disabled = true;
+    
+    // 清空报告
+    patientReport.innerHTML = '<p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>';
+    doctorReport.innerHTML = '<p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>';
+    diagnosisReport.innerHTML = '<p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>';
+    
+    updateStatus(false, '身份设置已重置');
+  }
+  
+  // 更新对话显示（应用说话人映射）
+  function updateTranscriptDisplay() {
+    const messages = transcriptEl.querySelectorAll('.message');
+    
+    messages.forEach(message => {
+      const speakerId = parseInt(message.dataset.speakerId);
+      const speakerLabel = message.querySelector('.speaker-label');
+      
+      if (speakerLabel) {
+        // 更新说话人名称
+        if (speakerMapping[speakerId]) {
+          speakerLabel.textContent = speakerMapping[speakerId].name;
+        } else {
+          speakerLabel.textContent = `说话人${speakerId}`;
+        }
+        
+        // 更新消息位置
+        const positionClass = getMessagePositionClass(speakerId);
+        
+        // 移除所有位置类
+        message.classList.remove('message-left', 'patient-side', 'hospital-side');
+        
+        // 添加新的位置类
+        message.classList.add(positionClass);
+      }
+    });
+  }
+  
+  // 重置模拟
+  function resetSimulation() {
+    clearInterval(interval);
+    interval = null;
+    isPlaying = false;
+    isPaused = false;
+    isMappingDone = false;
+    isReportGenerated = false;
+    
+    // 重置按钮状态
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+    exportBtn.disabled = true;
+    generateReportBtn.disabled = true;
+    
+    // 清空转录区域（保留初始的两条消息）
+    const messages = transcriptEl.querySelectorAll('.message');
+    for (let i = 2; i < messages.length; i++) {
+      messages[i].remove();
+    }
+    
+    // 重置初始消息
+    const initialMessages = transcriptEl.querySelectorAll('.message');
+    initialMessages.forEach((msg, index) => {
+      if (index < 2) {
+        const speakerId = index === 0 ? 1 : 2;
+        msg.dataset.speakerId = speakerId;
+        const speakerLabel = msg.querySelector('.speaker-label');
+        if (speakerLabel) {
+          speakerLabel.textContent = getSpeakerDisplayName(speakerId);
+        }
+        
+        // 重置位置
+        msg.classList.remove('patient-side', 'hospital-side');
+        msg.classList.add('message-left');
+      }
+    });
+    
+    // 更新计数
+    updateTranscriptCounter();
+    
+    // 更新场景
+    currentScenario = scenarios[scenarioSelect.value];
+    speakerMapping = {};
+    uniqueSpeakerIds.clear();
+    uniqueSpeakerIds.add(1);
+    uniqueSpeakerIds.add(2);
+    
+    // 清空身份设置表单
+    speakerMappingForm.innerHTML = '';
+    speakerMappingEmptyMessage.style.display = 'block';
+    speakerMappingEmptyMessage.textContent = '问诊结束后，将自动检测说话人数量并显示在这里';
+    cancelMappingBtn.disabled = true;
+    saveMappingBtn.disabled = true;
+    
+    // 重置报告
+    patientReport.innerHTML = '<p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>';
+    doctorReport.innerHTML = '<p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>';
+    diagnosisReport.innerHTML = '<p>请先完成问诊并设置说话人身份，然后点击"生成结构化报告"按钮。</p>';
+    
+    // 更新患者信息
+    patientName.textContent = '未知';
+    patientGender.textContent = '未知';
+    patientAge.textContent = '未知';
+    
+    updateStatus(false, '就绪');
+  }
+  
+  // 导出报告
+  function exportReport() {
+    if (!isReportGenerated) {
+      alert('请先生成结构化报告');
+      return;
+    }
+    
+    const reportData = {
+      病人基本信息: {
+        姓名: patientName.textContent,
+        性别: patientGender.textContent,
+        年龄: patientAge.textContent,
+        就诊时间: visitTime.textContent
+      },
+      说话人身份映射: speakerMapping,
+      病人自述: patientReport.textContent,
+      医生问诊摘要: doctorReport.textContent,
+      初步诊断与建议: diagnosisReport.textContent,
+      对话记录: []
+    };
+    
+    // 收集对话记录
+    const messages = transcriptEl.querySelectorAll('.message');
+    messages.forEach(msg => {
+      const speakerId = parseInt(msg.dataset.speakerId) || 0;
+      const speakerLabel = msg.querySelector('.speaker-label');
+      const speakerName = speakerLabel ? speakerLabel.textContent : '未知';
+      const text = msg.querySelector('div:nth-child(2)').textContent;
+      const time = msg.querySelector('.message-time').textContent;
+      
+      reportData.对话记录.push({
+        说话人ID: speakerId,
+        身份: speakerName,
+        内容: text,
+        时间: time
+      });
+    });
+    
+    // 创建JSON文件
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    // 创建下载链接
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `问诊报告_${patientName.textContent}_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    // 显示提示
+    alert(`报告已导出为: ${link.download}`);
+  }
+  
+  // 折叠/展开身份设置区域
+  function toggleSpeakerMappingSection() {
+    speakerMappingSection.classList.toggle('collapsed');
+  }
+  
+  // 事件监听
+  startBtn.addEventListener('click', startSimulation);
+  pauseBtn.addEventListener('click', togglePause);
+  stopBtn.addEventListener('click', stopSimulation);
+  exportBtn.addEventListener('click', exportReport);
+  resetBtn.addEventListener('click', resetSimulation);
+  scenarioSelect.addEventListener('change', resetSimulation);
+  cancelMappingBtn.addEventListener('click', resetSpeakerMapping);
+  saveMappingBtn.addEventListener('click', saveSpeakerMapping);
+  generateReportBtn.addEventListener('click', generateReport);
+  speakerMappingHeader.addEventListener('click', toggleSpeakerMappingSection);
+  
+  // 初始化
+  updateTranscriptCounter();
+  resetSimulation();
+</script>
+
+</body>
+</html>

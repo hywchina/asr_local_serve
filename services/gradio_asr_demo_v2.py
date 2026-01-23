@@ -14,6 +14,8 @@ BACKEND_API_URL = "http://localhost:8002/asr_sd"
 CHUNK_DURATION = 10  # 每次录音分段时长(秒)
 SAMPLE_RATE = 16000  # 采样率
 MIN_AUDIO_LENGTH = SAMPLE_RATE * CHUNK_DURATION  # 最小音频长度(采样点数)
+ROLE_OPTIONS = ["患者", "家属/陪诊", "医生", "护士", "其他"]
+MAX_SPEAKERS = 4  # 预留最多4个说话人下拉行
 
 # ==================== 全局状态管理 ====================
 class ConsultationState:
@@ -29,6 +31,10 @@ class ConsultationState:
         self.recording_thread = None
         self.processed_chunks = 0  # 已处理的音频块数量
         self.total_audio_samples = 0  # 累积的音频采样点总数
+        self.transcript_version = 0  # 用于减少无意义UI刷新
+        self.last_rendered_version = -1
+        self.last_ui_render_time = 0.0
+        self.cached_transcript_html = ""
         
     def reset(self):
         self.__init__()
@@ -73,6 +79,29 @@ def convert_audio_to_wav(audio_array, sample_rate=16000):
     
     buffer.seek(0)
     return buffer.read()
+
+
+def has_enough_voice(audio_array: np.ndarray, sample_rate: int, min_voice_seconds: float = 3.0, energy_threshold: float = 0.01) -> Tuple[bool, float]:
+    """简单能量检测: 有效语音时长不足时跳过调用后端,避免无效请求"""
+    if audio_array.size == 0:
+        return False, 0.0
+
+    audio = audio_array.astype(np.float32)
+    # 如果是int16,缩放到[-1,1]
+    if audio.max(initial=0) > 1.5:
+        audio = audio / 32768.0
+
+    frame = max(int(0.02 * sample_rate), 1)  # 20ms帧
+    if len(audio) < frame:
+        return False, 0.0
+
+    # 滑动均方根能量
+    window = np.ones(frame) / frame
+    rms = np.sqrt(np.convolve(audio ** 2, window, mode="valid"))
+    voiced = rms > energy_threshold
+    voiced_duration = voiced.sum() * (frame / sample_rate)
+
+    return voiced_duration >= min_voice_seconds, float(voiced_duration)
 
 # ==================== 核心功能函数 ====================
 
@@ -191,6 +220,45 @@ def create_speaker_mapping_ui(speaker_labels: List[str]) -> List[List]:
     
     return rows
 
+
+def build_mapping_updates(mapping_data: List[List]) -> Tuple:
+    """将映射数据行转换为控件update; 输出顺序: 全部label, 全部role, 全部name"""
+    if not mapping_data:
+        mapping_data = []
+
+    labels = ["" for _ in range(MAX_SPEAKERS)]
+    roles = ["患者" for _ in range(MAX_SPEAKERS)]
+    names = ["" for _ in range(MAX_SPEAKERS)]
+
+    for idx, row in enumerate(mapping_data[:MAX_SPEAKERS]):
+        if len(row) >= 1:
+            labels[idx] = row[0]
+        if len(row) >= 2 and row[1] in ROLE_OPTIONS:
+            roles[idx] = row[1]
+        if len(row) >= 3:
+            names[idx] = row[2]
+
+    label_updates = []
+    role_updates = []
+    name_updates = []
+    for i in range(MAX_SPEAKERS):
+        visible = bool(labels[i])
+        label_updates.append(gr.update(value=labels[i], visible=visible))
+        role_updates.append(gr.update(value=roles[i], choices=ROLE_OPTIONS, visible=visible))
+        name_updates.append(gr.update(value=names[i], visible=visible))
+    return tuple(label_updates + role_updates + name_updates)
+
+
+def build_empty_mapping_updates() -> Tuple:
+    label_updates = []
+    role_updates = []
+    name_updates = []
+    for _ in range(MAX_SPEAKERS):
+        label_updates.append(gr.update(value="", visible=False))
+        role_updates.append(gr.update(value="患者", choices=ROLE_OPTIONS, visible=False))
+        name_updates.append(gr.update(value="", visible=False))
+    return tuple(label_updates + role_updates + name_updates)
+
 # ==================== 音频处理和实时转录 ====================
 
 def process_audio_chunk(audio_chunk, sample_rate):
@@ -223,6 +291,7 @@ def process_audio_chunk(audio_chunk, sample_rate):
                 state.unique_speakers.add(item['speaker'])
             
             state.processed_chunks += 1
+            state.transcript_version += 1  # 标记有新内容,触发UI刷新
             return True
         
         return False
@@ -238,6 +307,9 @@ def start_consultation():
     state.reset()
     state.is_recording = True
     state.start_time = datetime.now()
+    state.cached_transcript_html = format_transcript_html([], False, {})
+    state.last_rendered_version = state.transcript_version
+    state.last_ui_render_time = time.time()
     
     return (
         gr.update(interactive=False),  # 开始按钮
@@ -245,14 +317,15 @@ def start_consultation():
         gr.update(interactive=True),   # 结束按钮
         gr.update(value="<div style='color: #4cd964;'>● 问诊中...</div>"),  # 状态指示
         format_transcript_html([], False, {}),  # 清空对话
-        gr.update(value=[], visible=False),  # 隐藏映射表格
         gr.update(value="提示:问诊结束后,请为检测到的说话人分配身份。设置为\"医生\"或\"护士\"身份的消息将显示在右侧,其他身份消息显示在左侧。"),
         gr.update(interactive=False),  # 应用设置按钮
         gr.update(interactive=False),  # 重置设置按钮
         gr.update(interactive=False),  # 生成报告按钮
         gr.update(value=""),  # 清空报告
         f"0 条对话",  # 对话计数
-        "等待录音..."  # 音频状态
+        "等待录音...",  # 音频状态
+        gr.update(visible=False),  # 音频组件占位
+        None  # 占位: 映射数据
     )
 
 def pause_consultation():
@@ -276,7 +349,11 @@ def stop_consultation():
     if state.audio_buffer and state.total_audio_samples > 0:
         combined_audio = np.concatenate(state.audio_buffer)
         if len(combined_audio) > SAMPLE_RATE:  # 至少1秒
-            process_audio_chunk(combined_audio, SAMPLE_RATE)
+            voice_ok, voiced_secs = has_enough_voice(combined_audio, SAMPLE_RATE)
+            if voice_ok:
+                process_audio_chunk(combined_audio, SAMPLE_RATE)
+            else:
+                print(f"Skip final chunk: voiced {voiced_secs:.2f}s < min")
         state.audio_buffer = []
         state.total_audio_samples = 0
     
@@ -301,7 +378,7 @@ def stop_consultation():
         gr.update(interactive=False),  # 结束按钮
         gr.update(value="<div style='color: #666;'>✓ 问诊已结束</div>"),  # 状态
         format_transcript_html(state.transcripts, False, {}),  # 刷新对话显示
-        gr.update(value=mapping_data, visible=True),  # 显示映射表格
+        mapping_data,
         gr.update(value=f"问诊结束,共检测到 {speaker_count} 个说话人。请设置说话人身份后点击\"应用设置\"。"),
         gr.update(interactive=True),   # 启用应用设置
         gr.update(interactive=True),   # 启用重置设置
@@ -315,16 +392,24 @@ def on_audio_stream(audio_data):
     实时音频流处理回调 - 累积音频到足够长度后再处理
     audio_data: tuple (sample_rate, audio_array)
     """
+    now = time.time()
+
     if not state.is_recording or state.is_paused:
+        transcript_html = state.cached_transcript_html or format_transcript_html(
+            state.transcripts, state.mapping_done, state.speaker_mapping
+        )
         return (
-            format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping),
+            gr.update(value=transcript_html),
             f"{len(state.transcripts)} 条对话",
             f"累积音频: {state.total_audio_samples / SAMPLE_RATE:.1f}秒"
         )
     
     if audio_data is None:
+        transcript_html = state.cached_transcript_html or format_transcript_html(
+            state.transcripts, state.mapping_done, state.speaker_mapping
+        )
         return (
-            format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping),
+            gr.update(value=transcript_html),
             f"{len(state.transcripts)} 条对话",
             f"累积音频: {state.total_audio_samples / SAMPLE_RATE:.1f}秒"
         )
@@ -343,37 +428,74 @@ def on_audio_stream(audio_data):
     status_msg = f"累积音频: {current_duration:.1f}秒"
     
     # 检查是否累积到足够长度
+    transcript_html = state.cached_transcript_html or format_transcript_html(
+        state.transcripts, state.mapping_done, state.speaker_mapping
+    )
+    html_update = gr.update(value=transcript_html)
+
     if state.total_audio_samples >= MIN_AUDIO_LENGTH:
-        # 合并所有音频片段
         combined_audio = np.concatenate(state.audio_buffer)
-        
-        # 处理音频块
-        success = process_audio_chunk(combined_audio, sample_rate)
-        
-        if success:
-            # 清空缓冲区,准备下一批
-            state.audio_buffer = []
-            state.total_audio_samples = 0
-            status_msg = f"✓ 已处理第 {state.processed_chunks} 段音频"
+
+        voice_ok, voiced_secs = has_enough_voice(combined_audio, sample_rate)
+
+        if not voice_ok:
+            status_msg = f"⚠️ 语音太短/太静({voiced_secs:.1f}s),继续累积..."
+            html_update = gr.update()  # 不更新HTML
         else:
-            status_msg = f"⚠️ 处理失败,继续累积... {current_duration:.1f}秒"
+            success = process_audio_chunk(combined_audio, sample_rate)
+            
+            if success:
+                state.audio_buffer = []
+                state.total_audio_samples = 0
+                status_msg = f"✓ 已处理第 {state.processed_chunks} 段音频 (语音{voiced_secs:.1f}s)"
+                # 有新内容时刷新缓存并记录渲染时间,减少闪烁
+                transcript_html = format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping)
+                state.cached_transcript_html = transcript_html
+                state.last_rendered_version = state.transcript_version
+                state.last_ui_render_time = now
+                html_update = gr.update(value=transcript_html)
+            else:
+                status_msg = f"⚠️ 处理失败,继续累积... {current_duration:.1f}秒"
+                html_update = gr.update()
+    else:
+        # 没有新内容且距离上次渲染过短时,直接复用缓存以降低刷新频率
+        need_render = (
+            state.transcript_version != state.last_rendered_version
+            or (now - state.last_ui_render_time) > 1.0
+            or not state.cached_transcript_html
+        )
+        if need_render:
+            transcript_html = format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping)
+            state.cached_transcript_html = transcript_html
+            state.last_rendered_version = state.transcript_version
+            state.last_ui_render_time = now
+            html_update = gr.update(value=transcript_html)
+        else:
+            html_update = gr.update()  # 不变更,避免闪烁
     
-    # 返回更新的UI
     return (
-        format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping),
+        html_update,
         f"{len(state.transcripts)} 条对话",
         status_msg
     )
 
-def apply_speaker_mapping(mapping_table):
+def apply_speaker_mapping(*args):
     """应用说话人身份映射"""
     state.speaker_mapping = {}
-    
-    for row in mapping_table:
-        speaker_label = row[0]  # "用户1"
-        role_cn = row[1]  # "医生"
-        name = row[2]  # "王医生"
-        
+
+    allowed_roles = set(ROLE_OPTIONS)
+
+    n = MAX_SPEAKERS
+    labels = list(args[:n])
+    roles = list(args[n:2*n])
+    names = list(args[2*n:3*n])
+
+    for speaker_label, role_cn, name in zip(labels, roles, names):
+        if not speaker_label:
+            continue
+        if role_cn not in allowed_roles:
+            role_cn = "其他"
+
         # 映射角色
         role_map = {
             "医生": "doctor",
@@ -381,6 +503,7 @@ def apply_speaker_mapping(mapping_table):
             "患者": "patient",
             "家属": "family",
             "陪诊": "family",
+            "家属/陪诊": "family",
             "其他": "other"
         }
         role = role_map.get(role_cn, "other")
@@ -394,6 +517,9 @@ def apply_speaker_mapping(mapping_table):
     
     # 更新对话显示
     updated_html = format_transcript_html(state.transcripts, True, state.speaker_mapping)
+    state.cached_transcript_html = updated_html
+    state.last_rendered_version = state.transcript_version
+    state.last_ui_render_time = time.time()
     
     return (
         updated_html,
@@ -410,10 +536,11 @@ def reset_speaker_mapping():
     mapping_data = create_speaker_mapping_ui(list(state.unique_speakers))
     
     return (
-        gr.update(value=mapping_data),
+        mapping_data,
         format_transcript_html(state.transcripts, False, {}),
         gr.update(interactive=False),  # 禁用生成报告
-        gr.update(value="提示:请重新设置说话人身份")
+        gr.update(value="提示:请重新设置说话人身份"),
+        *build_empty_mapping_updates()
     )
 
 def generate_report():
@@ -484,24 +611,6 @@ def generate_report():
 
 with gr.Blocks(
     title="智能医生问诊AI系统",
-    theme=gr.themes.Soft(),
-    css="""
-    .header {
-        background: linear-gradient(to right, #1e90ff, #1a7feb);
-        color: white;
-        padding: 20px 25px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .status-box {
-        padding: 12px;
-        border-radius: 8px;
-        background: #f5f5f5;
-        text-align: center;
-        font-weight: 500;
-    }
-    """
 ) as demo:
     
     # 标题
@@ -560,17 +669,20 @@ with gr.Blocks(
             mapping_hint = gr.Markdown(
                 "提示:问诊结束后,请为检测到的说话人分配身份。设置为\"医生\"或\"护士\"身份的消息将显示在右侧,其他身份消息显示在左侧。"
             )
-            
-            speaker_mapping_table = gr.Dataframe(
-                headers=["说话人", "角色", "姓名"],
-                datatype=["str", "str", "str"],
-                col_count=(3, "fixed"),
-                row_count=(1, "dynamic"),
-                interactive=True,
-                visible=False,
-                label="身份映射表"
-            )
-            
+
+            # 自定义下拉控件行
+            label_boxes = []
+            role_dropdowns = []
+            name_boxes = []
+            for i in range(MAX_SPEAKERS):
+                with gr.Row():
+                    lbl = gr.Textbox(label=f"说话人{i+1}", interactive=False, visible=False)
+                    role = gr.Dropdown(choices=ROLE_OPTIONS, value="患者", label="角色", visible=False)
+                    name = gr.Textbox(label="姓名", visible=False)
+                label_boxes.append(lbl)
+                role_dropdowns.append(role)
+                name_boxes.append(name)
+    
             with gr.Row():
                 reset_mapping_btn = gr.Button("🔄 重置设置", variant="secondary", interactive=False)
                 apply_mapping_btn = gr.Button("✓ 应用设置", variant="primary", interactive=False)
@@ -626,18 +738,27 @@ with gr.Blocks(
     # 开始问诊 - 触发录音开始
     def on_start():
         updates = start_consultation()
-        # 显示音频输入组件
-        return updates + (gr.update(visible=True),)
+        base = list(updates)
+        # 打开音频输入组件
+        base[12] = gr.update(visible=True)
+        base += list(build_empty_mapping_updates())
+        return tuple(base)
     
+    mapping_state = gr.State()
+
     start_click = start_btn.click(
         fn=on_start,
         outputs=[
             start_btn, pause_btn, stop_btn, status_box,
-            transcript_display, speaker_mapping_table,
+            transcript_display,
             mapping_hint, apply_mapping_btn, reset_mapping_btn,
             generate_report_btn, report_display, transcript_counter,
-            audio_status, audio_input
+            audio_status, audio_input,
+            mapping_state
         ]
+        + label_boxes
+        + role_dropdowns
+        + name_boxes
     )
     
     # 音频流处理 - 实时转录(累积到足够长度)
@@ -658,10 +779,14 @@ with gr.Blocks(
         fn=stop_consultation,
         outputs=[
             start_btn, pause_btn, stop_btn, status_box,
-            transcript_display, speaker_mapping_table,
+            transcript_display, mapping_state,
             mapping_hint, apply_mapping_btn, reset_mapping_btn,
             generate_report_btn, transcript_counter, audio_status
         ]
+    ).then(
+        fn=build_mapping_updates,
+        inputs=[mapping_state],
+        outputs=label_boxes + role_dropdowns + name_boxes
     ).then(
         fn=lambda: gr.update(visible=False),
         outputs=[audio_input]
@@ -670,14 +795,19 @@ with gr.Blocks(
     # 应用身份映射
     apply_mapping_btn.click(
         fn=apply_speaker_mapping,
-        inputs=[speaker_mapping_table],
+        inputs=label_boxes + role_dropdowns + name_boxes,
         outputs=[transcript_display, generate_report_btn, status_box]
     )
     
     # 重置映射
     reset_mapping_btn.click(
         fn=reset_speaker_mapping,
-        outputs=[speaker_mapping_table, transcript_display, generate_report_btn, mapping_hint]
+        outputs=[
+            mapping_state,
+            transcript_display,
+            generate_report_btn,
+            mapping_hint,
+        ] + label_boxes + role_dropdowns + name_boxes
     )
     
     # 生成报告
@@ -691,5 +821,23 @@ if __name__ == "__main__":
         share=False,
         server_name="0.0.0.0",
         server_port=7860,
-        show_error=True
+        show_error=True,
+        theme=gr.themes.Soft(),
+        css="""
+        .header {
+            background: linear-gradient(to right, #1e90ff, #1a7feb);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .status-box {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            text-align: center;
+            font-weight: 500;
+        }
+        """
     )

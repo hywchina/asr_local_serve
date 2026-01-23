@@ -11,7 +11,7 @@ import wave
 
 # ==================== 配置 ====================
 BACKEND_API_URL = "http://localhost:8002/asr_sd"
-CHUNK_DURATION = 10  # 每次录音分段时长(秒)
+CHUNK_DURATION = 30  # 每次录音分段时长(秒) — 拉长以保持说话人连续性
 SAMPLE_RATE = 16000  # 采样率
 MIN_AUDIO_LENGTH = SAMPLE_RATE * CHUNK_DURATION  # 最小音频长度(采样点数)
 ROLE_OPTIONS = ["患者", "家属/陪诊", "医生", "护士", "其他"]

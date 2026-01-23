@@ -1,186 +1,695 @@
-import os
-import time
-import traceback
-import requests
-import numpy as np
-import soundfile as sf
 import gradio as gr
+import json
+import time
+import requests
+import threading
+from datetime import datetime
+from typing import Dict, List, Tuple
+import numpy as np
+import io
+import wave
 
-API_URL = "http://localhost:8002/asr_sd"
+# ==================== 配置 ====================
+BACKEND_API_URL = "http://localhost:8002/asr_sd"
+CHUNK_DURATION = 10  # 每次录音分段时长(秒)
+SAMPLE_RATE = 16000  # 采样率
+MIN_AUDIO_LENGTH = SAMPLE_RATE * CHUNK_DURATION  # 最小音频长度(采样点数)
 
-MIN_AUDIO_SEC = 3.0        # ⚠️ 必须 ≥ 后端最小需求
-ASR_COOLDOWN = 2.0         # 两次 ASR 至少间隔 2 秒
+# ==================== 全局状态管理 ====================
+class ConsultationState:
+    def __init__(self):
+        self.is_recording = False
+        self.is_paused = False
+        self.transcripts = []  # 存储所有转录内容
+        self.speaker_mapping = {}  # 说话人ID到身份的映射
+        self.unique_speakers = set()  # 检测到的说话人集合
+        self.mapping_done = False  # 是否完成身份映射
+        self.start_time = None
+        self.audio_buffer = []  # 累积的音频数据(numpy array)
+        self.recording_thread = None
+        self.processed_chunks = 0  # 已处理的音频块数量
+        self.total_audio_samples = 0  # 累积的音频采样点总数
+        
+    def reset(self):
+        self.__init__()
 
-# =========================
-# ASR 调用
-# =========================
-def call_asr_sd(wav_path):
-    with open(wav_path, "rb") as f:
-        r = requests.post(
-            API_URL,
-            files={"file": ("chunk.wav", f, "audio/wav")},
-            timeout=120,
-        )
-    r.raise_for_status()
-    return r.json()
+state = ConsultationState()
 
-# =========================
-# UI 渲染
-# =========================
-def render_dialog(segments, mapping=None, mapped=False):
-    html = ""
-    for s in segments:
-        spk = s["speaker"]
-        text = s["text"]
-
-        if not mapped:
-            name = spk
-            align = "left"
-        else:
-            info = mapping.get(spk, {"name": spk, "role": "patient"})
-            name = info["name"]
-            align = "right" if info["role"] in ["doctor", "nurse"] else "left"
-
-        html += f"""
-        <div style="
-            max-width:70%;
-            float:{align};
-            clear:both;
-            background:#f2f2f2;
-            padding:10px;
-            margin:6px;
-            border-radius:8px;
-        ">
-        <b>{name}</b><br>{text}
-        </div>
-        """
-    return html or "<i>暂无对话</i>"
-
-# =========================
-# 核心：稳定伪实时 ASR
-# =========================
-def realtime_asr(
-    audio_chunk,
-    segments,
-    audio_buffer,
-    buffer_sr,
-    last_call_ts,
-    asr_busy,
-):
-    if audio_chunk is None:
-        return segments, audio_buffer, buffer_sr, last_call_ts, asr_busy, render_dialog(segments)
-
-    sr, data = audio_chunk
-    data = data.astype(np.float32)
-
-    if audio_buffer is None:
-        audio_buffer = data
-        buffer_sr = sr
-    else:
-        audio_buffer = np.concatenate([audio_buffer, data])
-
-    duration = len(audio_buffer) / buffer_sr
-    now = time.time()
-
-    # ❌ 不满足条件直接返回
-    if (
-        duration < MIN_AUDIO_SEC
-        or asr_busy
-        or (now - last_call_ts) < ASR_COOLDOWN
-    ):
-        return segments, audio_buffer, buffer_sr, last_call_ts, asr_busy, render_dialog(segments)
-
-    # ✅ 进入 ASR
-    asr_busy = True
-    last_call_ts = now
-
-    tmp = f"/tmp/asr_{int(now*1000)}.wav"
-    sf.write(tmp, audio_buffer, buffer_sr)
-
+# ==================== 后端API调用 ====================
+def call_backend_api(audio_data: bytes) -> List[Dict]:
+    """
+    调用后端ASR+SD API
+    audio_data: WAV格式的音频字节流
+    返回: [{"start": float, "end": float, "speaker": str, "text": str}, ...]
+    """
     try:
-        result = call_asr_sd(tmp)
-        if isinstance(result, dict):
-            result = [result]
-        segments.extend(result)
-        audio_buffer = None
-        buffer_sr = None
-
+        files = {"file": ("chunk.wav", audio_data, "audio/wav")}
+        response = requests.post(BACKEND_API_URL, files=files, timeout=30)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"API Error: {response.status_code} - {response.text}")
+            return []
     except Exception as e:
-        print("⚠️ ASR 失败，等待冷却:", e)
-        traceback.print_exc()
+        print(f"Backend API call failed: {str(e)}")
+        return []
 
-    finally:
-        asr_busy = False
+def convert_audio_to_wav(audio_array, sample_rate=16000):
+    """
+    将音频数组转换为WAV格式的字节流
+    """
+    buffer = io.BytesIO()
+    
+    # 确保音频数据是int16格式
+    if audio_array.dtype != np.int16:
+        audio_array = (audio_array * 32767).astype(np.int16)
+    
+    with wave.open(buffer, 'wb') as wav_file:
+        wav_file.setnchannels(1)  # 单声道
+        wav_file.setsampwidth(2)  # 16bit
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(audio_array.tobytes())
+    
+    buffer.seek(0)
+    return buffer.read()
 
-    return segments, audio_buffer, buffer_sr, last_call_ts, asr_busy, render_dialog(segments)
+# ==================== 核心功能函数 ====================
 
-# =========================
-# 身份映射
-# =========================
-def finish_consult(segments):
-    speakers = sorted({s["speaker"] for s in segments})
-    mapping = {s: {"name": s, "role": "patient"} for s in speakers}
-    return mapping, gr.update(choices=speakers)
+def format_time(seconds: float) -> str:
+    """格式化时间为 MM:SS"""
+    minutes = int(seconds // 60)
+    secs = int(seconds % 60)
+    return f"{minutes:02d}:{secs:02d}"
 
-def apply_mapping(mapping, spk, role, name):
-    mapping[spk] = {"role": role, "name": name}
-    return mapping
+def format_transcript_html(transcripts: List[Dict], mapping_done: bool, speaker_mapping: Dict) -> str:
+    """格式化对话转录为HTML"""
+    if not transcripts:
+        return '<div style="color: #999; text-align: center; padding: 20px;">暂无对话内容</div>'
+    
+    html = '<div style="display: flex; flex-direction: column; gap: 15px; max-height: 500px; overflow-y: auto; padding: 10px;">'
+    
+    for item in transcripts:
+        speaker_label = item['speaker']  # "用户1", "用户2" 等
+        text = item['text']
+        time_range = f"{format_time(item['start'])}-{format_time(item['end'])}"
+        
+        # 确定说话人显示名称
+        if mapping_done and speaker_label in speaker_mapping:
+            speaker_name = speaker_mapping[speaker_label]['name']
+            role = speaker_mapping[speaker_label]['role']
+            is_hospital = role in ['doctor', 'nurse']
+        else:
+            speaker_name = speaker_label
+            is_hospital = False
+        
+        # 确定消息位置和样式
+        if mapping_done:
+            if is_hospital:
+                # 医院方 - 右侧,蓝色
+                align = "flex-end"
+                bg_color = "#e3f2fd"
+                name_color = "#1e90ff"
+                border_radius = "12px 12px 4px 12px"
+            else:
+                # 患者方 - 左侧,绿色
+                align = "flex-start"
+                bg_color = "#e8f5e9"
+                name_color = "#4caf50"
+                border_radius = "12px 12px 12px 4px"
+        else:
+            # 未映射 - 左侧,灰色
+            align = "flex-start"
+            bg_color = "#f0f0f0"
+            name_color = "#666"
+            border_radius = "12px 12px 12px 4px"
+        
+        html += f'''
+        <div style="display: flex; justify-content: {align};">
+            <div style="
+                max-width: 80%;
+                padding: 12px 16px;
+                background-color: {bg_color};
+                border-radius: {border_radius};
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            ">
+                <div style="font-size: 12px; font-weight: 600; color: {name_color}; margin-bottom: 5px;">
+                    {speaker_name}
+                </div>
+                <div style="font-size: 14px; line-height: 1.6; color: #333;">
+                    {text}
+                </div>
+                <div style="font-size: 11px; color: #999; text-align: right; margin-top: 5px;">
+                    {time_range}
+                </div>
+            </div>
+        </div>
+        '''
+    
+    html += '</div>'
+    return html
 
-def rerender(segments, mapping):
-    return render_dialog(segments, mapping, mapped=True)
+def merge_consecutive_speakers(transcripts: List[Dict]) -> List[Dict]:
+    """合并相邻同一说话人的内容"""
+    if not transcripts:
+        return []
+    
+    merged = []
+    current = transcripts[0].copy()
+    
+    for i in range(1, len(transcripts)):
+        if transcripts[i]['speaker'] == current['speaker']:
+            # 合并文本和时间
+            current['text'] += ' ' + transcripts[i]['text']
+            current['end'] = transcripts[i]['end']
+        else:
+            merged.append(current)
+            current = transcripts[i].copy()
+    
+    merged.append(current)
+    return merged
 
-# =========================
-# UI
-# =========================
-with gr.Blocks() as demo:
-    segments = gr.State([])
-    audio_buffer = gr.State(None)
-    buffer_sr = gr.State(None)
-    last_call_ts = gr.State(0.0)
-    asr_busy = gr.State(False)
-    mapping = gr.State({})
+def create_speaker_mapping_ui(speaker_labels: List[str]) -> List[List]:
+    """创建说话人身份映射UI的数据"""
+    if not speaker_labels:
+        return []
+    
+    rows = []
+    for idx, speaker_label in enumerate(sorted(speaker_labels)):
+        # 默认猜测:用户1可能是患者,用户2可能是医生
+        if speaker_label == "用户1":
+            default_role = "患者"
+            default_name = "患者1"
+        elif speaker_label == "用户2":
+            default_role = "医生"
+            default_name = "医生"
+        else:
+            default_role = "其他"
+            default_name = speaker_label
+        
+        rows.append([speaker_label, default_role, default_name])
+    
+    return rows
 
-    gr.Markdown("## 🎙 实时问诊（稳定版）")
+# ==================== 音频处理和实时转录 ====================
 
-    audio = gr.Audio(
-        sources=["microphone"],
-        streaming=True,
-        type="numpy",
-        label="点击麦克风开始问诊"
+def process_audio_chunk(audio_chunk, sample_rate):
+    """
+    处理单个音频块:
+    1. 转换为WAV格式
+    2. 调用后端API
+    3. 更新转录结果
+    """
+    try:
+        # 转换音频格式
+        wav_data = convert_audio_to_wav(audio_chunk, sample_rate)
+        
+        # 调用后端API
+        results = call_backend_api(wav_data)
+        
+        if results:
+            # 计算时间偏移(基于已处理的音频块)
+            time_offset = state.processed_chunks * CHUNK_DURATION
+            
+            # 调整时间戳并添加到转录列表
+            for item in results:
+                adjusted_item = {
+                    'speaker': item['speaker'],
+                    'text': item['text'],
+                    'start': item['start'] + time_offset,
+                    'end': item['end'] + time_offset
+                }
+                state.transcripts.append(adjusted_item)
+                state.unique_speakers.add(item['speaker'])
+            
+            state.processed_chunks += 1
+            return True
+        
+        return False
+        
+    except Exception as e:
+        print(f"Error processing audio chunk: {str(e)}")
+        return False
+
+# ==================== 事件处理函数 ====================
+
+def start_consultation():
+    """开始问诊"""
+    state.reset()
+    state.is_recording = True
+    state.start_time = datetime.now()
+    
+    return (
+        gr.update(interactive=False),  # 开始按钮
+        gr.update(interactive=True),   # 暂停按钮
+        gr.update(interactive=True),   # 结束按钮
+        gr.update(value="<div style='color: #4cd964;'>● 问诊中...</div>"),  # 状态指示
+        format_transcript_html([], False, {}),  # 清空对话
+        gr.update(value=[], visible=False),  # 隐藏映射表格
+        gr.update(value="提示:问诊结束后,请为检测到的说话人分配身份。设置为\"医生\"或\"护士\"身份的消息将显示在右侧,其他身份消息显示在左侧。"),
+        gr.update(interactive=False),  # 应用设置按钮
+        gr.update(interactive=False),  # 重置设置按钮
+        gr.update(interactive=False),  # 生成报告按钮
+        gr.update(value=""),  # 清空报告
+        f"0 条对话",  # 对话计数
+        "等待录音..."  # 音频状态
     )
 
-    dialog = gr.HTML("<i>暂无对话</i>")
+def pause_consultation():
+    """暂停/继续问诊"""
+    state.is_paused = not state.is_paused
+    
+    if state.is_paused:
+        status_text = "<div style='color: #ff9500;'>⏸ 已暂停</div>"
+        pause_btn_text = "▶️ 继续"
+    else:
+        status_text = "<div style='color: #4cd964;'>● 问诊中...</div>"
+        pause_btn_text = "⏸ 暂停"
+    
+    return gr.update(value=status_text), gr.update(value=pause_btn_text)
 
-    audio.stream(
-        realtime_asr,
-        inputs=[
-            audio,
-            segments,
-            audio_buffer,
-            buffer_sr,
-            last_call_ts,
-            asr_busy,
-        ],
+def stop_consultation():
+    """结束问诊"""
+    state.is_recording = False
+    
+    # 处理缓冲区中的剩余音频
+    if state.audio_buffer and state.total_audio_samples > 0:
+        combined_audio = np.concatenate(state.audio_buffer)
+        if len(combined_audio) > SAMPLE_RATE:  # 至少1秒
+            process_audio_chunk(combined_audio, SAMPLE_RATE)
+        state.audio_buffer = []
+        state.total_audio_samples = 0
+    
+    # 等待录音线程结束
+    if state.recording_thread and state.recording_thread.is_alive():
+        state.recording_thread.join(timeout=2)
+    
+    # 合并相邻同一说话人的对话
+    state.transcripts = merge_consecutive_speakers(state.transcripts)
+    
+    # 统计说话人
+    state.unique_speakers = set(t['speaker'] for t in state.transcripts)
+    
+    # 创建映射表格数据
+    mapping_data = create_speaker_mapping_ui(list(state.unique_speakers))
+    
+    speaker_count = len(state.unique_speakers)
+    
+    return (
+        gr.update(interactive=True),   # 开始按钮
+        gr.update(interactive=False, value="⏸ 暂停"),  # 暂停按钮
+        gr.update(interactive=False),  # 结束按钮
+        gr.update(value="<div style='color: #666;'>✓ 问诊已结束</div>"),  # 状态
+        format_transcript_html(state.transcripts, False, {}),  # 刷新对话显示
+        gr.update(value=mapping_data, visible=True),  # 显示映射表格
+        gr.update(value=f"问诊结束,共检测到 {speaker_count} 个说话人。请设置说话人身份后点击\"应用设置\"。"),
+        gr.update(interactive=True),   # 启用应用设置
+        gr.update(interactive=True),   # 启用重置设置
+        gr.update(interactive=False),  # 生成报告仍禁用
+        f"{len(state.transcripts)} 条对话",
+        "录音已结束"
+    )
+
+def on_audio_stream(audio_data):
+    """
+    实时音频流处理回调 - 累积音频到足够长度后再处理
+    audio_data: tuple (sample_rate, audio_array)
+    """
+    if not state.is_recording or state.is_paused:
+        return (
+            format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping),
+            f"{len(state.transcripts)} 条对话",
+            f"累积音频: {state.total_audio_samples / SAMPLE_RATE:.1f}秒"
+        )
+    
+    if audio_data is None:
+        return (
+            format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping),
+            f"{len(state.transcripts)} 条对话",
+            f"累积音频: {state.total_audio_samples / SAMPLE_RATE:.1f}秒"
+        )
+    
+    sample_rate, audio_array = audio_data
+    
+    # 转换为单声道(如果是立体声)
+    if len(audio_array.shape) > 1:
+        audio_array = audio_array.mean(axis=1)
+    
+    # 累积音频到缓冲区
+    state.audio_buffer.append(audio_array)
+    state.total_audio_samples += len(audio_array)
+    
+    current_duration = state.total_audio_samples / SAMPLE_RATE
+    status_msg = f"累积音频: {current_duration:.1f}秒"
+    
+    # 检查是否累积到足够长度
+    if state.total_audio_samples >= MIN_AUDIO_LENGTH:
+        # 合并所有音频片段
+        combined_audio = np.concatenate(state.audio_buffer)
+        
+        # 处理音频块
+        success = process_audio_chunk(combined_audio, sample_rate)
+        
+        if success:
+            # 清空缓冲区,准备下一批
+            state.audio_buffer = []
+            state.total_audio_samples = 0
+            status_msg = f"✓ 已处理第 {state.processed_chunks} 段音频"
+        else:
+            status_msg = f"⚠️ 处理失败,继续累积... {current_duration:.1f}秒"
+    
+    # 返回更新的UI
+    return (
+        format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping),
+        f"{len(state.transcripts)} 条对话",
+        status_msg
+    )
+
+def apply_speaker_mapping(mapping_table):
+    """应用说话人身份映射"""
+    state.speaker_mapping = {}
+    
+    for row in mapping_table:
+        speaker_label = row[0]  # "用户1"
+        role_cn = row[1]  # "医生"
+        name = row[2]  # "王医生"
+        
+        # 映射角色
+        role_map = {
+            "医生": "doctor",
+            "护士": "nurse",
+            "患者": "patient",
+            "家属": "family",
+            "陪诊": "family",
+            "其他": "other"
+        }
+        role = role_map.get(role_cn, "other")
+        
+        state.speaker_mapping[speaker_label] = {
+            "role": role,
+            "name": name or speaker_label
+        }
+    
+    state.mapping_done = True
+    
+    # 更新对话显示
+    updated_html = format_transcript_html(state.transcripts, True, state.speaker_mapping)
+    
+    return (
+        updated_html,
+        gr.update(interactive=True),  # 启用生成报告按钮
+        gr.update(value="<div style='color: #4cd964;'>✓ 身份设置已应用,可以生成报告</div>")
+    )
+
+def reset_speaker_mapping():
+    """重置说话人映射"""
+    state.speaker_mapping = {}
+    state.mapping_done = False
+    
+    # 重新生成默认映射
+    mapping_data = create_speaker_mapping_ui(list(state.unique_speakers))
+    
+    return (
+        gr.update(value=mapping_data),
+        format_transcript_html(state.transcripts, False, {}),
+        gr.update(interactive=False),  # 禁用生成报告
+        gr.update(value="提示:请重新设置说话人身份")
+    )
+
+def generate_report():
+    """生成结构化报告"""
+    if not state.mapping_done:
+        return "❌ 请先完成说话人身份设置并点击\"应用设置\""
+    
+    # 收集患者和医生的对话
+    patient_texts = []
+    doctor_texts = []
+    all_dialogue = []
+    
+    for item in state.transcripts:
+        speaker_label = item['speaker']
+        text = item['text']
+        time_str = f"{format_time(item['start'])}-{format_time(item['end'])}"
+        
+        if speaker_label in state.speaker_mapping:
+            role = state.speaker_mapping[speaker_label]['role']
+            name = state.speaker_mapping[speaker_label]['name']
+            
+            all_dialogue.append(f"**{name}** ({time_str}): {text}")
+            
+            if role in ['patient', 'family']:
+                patient_texts.append(text)
+            elif role in ['doctor', 'nurse']:
+                doctor_texts.append(text)
+    
+    # 生成报告
+    report = f"""
+# 📋 问诊结构化报告
+
+---
+
+## 📌 病人基本信息
+- **就诊时间**: {state.start_time.strftime('%Y-%m-%d %H:%M:%S') if state.start_time else '未知'}
+- **问诊时长**: {format_time(state.transcripts[-1]['end']) if state.transcripts else '00:00'}
+- **参与人数**: {len(state.unique_speakers)}人
+
+---
+
+## 🗣️ 病人自述
+{' '.join(patient_texts) if patient_texts else '无'}
+
+---
+
+## 🩺 医生问诊摘要
+{' '.join(doctor_texts) if doctor_texts else '无'}
+
+---
+
+## 💬 完整对话记录
+{chr(10).join(all_dialogue)}
+
+---
+
+## 🔍 初步诊断与建议
+> *待医生补充...*
+
+---
+
+*报告生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
+"""
+    
+    return report
+
+# ==================== Gradio界面构建 ====================
+
+with gr.Blocks(
+    title="智能医生问诊AI系统",
+    theme=gr.themes.Soft(),
+    css="""
+    .header {
+        background: linear-gradient(to right, #1e90ff, #1a7feb);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .status-box {
+        padding: 12px;
+        border-radius: 8px;
+        background: #f5f5f5;
+        text-align: center;
+        font-weight: 500;
+    }
+    """
+) as demo:
+    
+    # 标题
+    gr.HTML("""
+    <div class="header">
+        <h1 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 24px;">
+            🩺 智能医生问诊AI系统
+        </h1>
+        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">
+            基于语音识别和说话人分离的医疗问诊记录系统
+        </p>
+    </div>
+    """)
+    
+    with gr.Row():
+        # 左侧:问诊对话
+        with gr.Column(scale=1):
+            gr.Markdown("### 📝 问诊对话")
+            
+            # 控制按钮
+            with gr.Row():
+                start_btn = gr.Button("▶️ 开始问诊", variant="primary", size="lg")
+                pause_btn = gr.Button("⏸ 暂停", interactive=False)
+                stop_btn = gr.Button("⏹ 结束问诊", interactive=False, variant="stop")
+            
+            # 状态指示器
+            status_box = gr.HTML(
+                "<div style='color: #666; text-align: center; padding: 10px;'>就绪</div>",
+                elem_classes="status-box"
+            )
+            
+            # 音频输入 - 用于实时录音
+            audio_input = gr.Audio(
+                sources=["microphone"],
+                type="numpy",
+                streaming=True,
+                label="录音",
+                show_label=False,
+                visible=False  # 隐藏,自动触发
+            )
+            
+            # 对话转录窗口
+            with gr.Row():
+                gr.Markdown("**实时对话转录**")
+                transcript_counter = gr.Markdown("0 条对话")
+            
+            # 音频状态提示
+            audio_status = gr.Markdown("等待开始录音...", elem_classes="status-box")
+            
+            transcript_display = gr.HTML(
+                value="<div style='color: #999; text-align: center; padding: 20px;'>点击\"开始问诊\"后开始录音</div>"
+            )
+            
+            # 说话人身份设置
+            gr.Markdown("### 👤 说话人身份设置")
+            mapping_hint = gr.Markdown(
+                "提示:问诊结束后,请为检测到的说话人分配身份。设置为\"医生\"或\"护士\"身份的消息将显示在右侧,其他身份消息显示在左侧。"
+            )
+            
+            speaker_mapping_table = gr.Dataframe(
+                headers=["说话人", "角色", "姓名"],
+                datatype=["str", "str", "str"],
+                col_count=(3, "fixed"),
+                row_count=(1, "dynamic"),
+                interactive=True,
+                visible=False,
+                label="身份映射表"
+            )
+            
+            with gr.Row():
+                reset_mapping_btn = gr.Button("🔄 重置设置", variant="secondary", interactive=False)
+                apply_mapping_btn = gr.Button("✓ 应用设置", variant="primary", interactive=False)
+            
+            generate_report_btn = gr.Button(
+                "📋 生成结构化报告",
+                variant="primary",
+                interactive=False,
+                size="lg"
+            )
+        
+        # 右侧:结构化报告
+        with gr.Column(scale=1):
+            gr.Markdown("### 📄 结构化报告")
+            report_display = gr.Markdown(
+                value="""
+---
+请先完成以下步骤:
+1. 点击"开始问诊"进行录音
+2. 结束问诊后设置说话人身份
+3. 点击"应用设置"
+4. 点击"生成结构化报告"
+---
+                """
+            )
+    
+    # 使用说明
+    with gr.Accordion("📖 使用说明", open=False):
+        gr.Markdown("""
+### 操作流程
+1. **开始问诊**: 点击"开始问诊"按钮,系统自动开始录音
+2. **实时转录**: 系统每10秒自动处理一次音频并显示转录结果
+3. **暂停/继续**: 可随时暂停或继续录音
+4. **结束问诊**: 点击"结束问诊",系统会自动合并相邻同一说话人的对话
+5. **身份映射**: 为每个检测到的说话人设置角色和姓名
+6. **应用设置**: 点击后对话窗口会按身份重新排列(医院方右侧,患者方左侧)
+7. **生成报告**: 生成包含完整信息的结构化医疗报告
+
+### 说话人角色说明
+- **医生/护士**: 医院方人员,对话显示在右侧(蓝色)
+- **患者/家属/陪诊**: 患者方人员,对话显示在左侧(绿色)
+- **其他**: 其他参与者
+
+### 技术特点
+- ✅ 实时语音识别
+- ✅ 自动说话人分离
+- ✅ 智能对话合并
+- ✅ 结构化报告生成
+        """)
+    
+    # ==================== 事件绑定 ====================
+    
+    # 开始问诊 - 触发录音开始
+    def on_start():
+        updates = start_consultation()
+        # 显示音频输入组件
+        return updates + (gr.update(visible=True),)
+    
+    start_click = start_btn.click(
+        fn=on_start,
         outputs=[
-            segments,
-            audio_buffer,
-            buffer_sr,
-            last_call_ts,
-            asr_busy,
-            dialog,
-        ],
+            start_btn, pause_btn, stop_btn, status_box,
+            transcript_display, speaker_mapping_table,
+            mapping_hint, apply_mapping_btn, reset_mapping_btn,
+            generate_report_btn, report_display, transcript_counter,
+            audio_status, audio_input
+        ]
+    )
+    
+    # 音频流处理 - 实时转录(累积到足够长度)
+    audio_input.stream(
+        fn=on_audio_stream,
+        inputs=[audio_input],
+        outputs=[transcript_display, transcript_counter, audio_status]
+    )
+    
+    # 暂停/继续
+    pause_btn.click(
+        fn=pause_consultation,
+        outputs=[status_box, pause_btn]
+    )
+    
+    # 结束问诊
+    stop_btn.click(
+        fn=stop_consultation,
+        outputs=[
+            start_btn, pause_btn, stop_btn, status_box,
+            transcript_display, speaker_mapping_table,
+            mapping_hint, apply_mapping_btn, reset_mapping_btn,
+            generate_report_btn, transcript_counter, audio_status
+        ]
+    ).then(
+        fn=lambda: gr.update(visible=False),
+        outputs=[audio_input]
+    )
+    
+    # 应用身份映射
+    apply_mapping_btn.click(
+        fn=apply_speaker_mapping,
+        inputs=[speaker_mapping_table],
+        outputs=[transcript_display, generate_report_btn, status_box]
+    )
+    
+    # 重置映射
+    reset_mapping_btn.click(
+        fn=reset_speaker_mapping,
+        outputs=[speaker_mapping_table, transcript_display, generate_report_btn, mapping_hint]
+    )
+    
+    # 生成报告
+    generate_report_btn.click(
+        fn=generate_report,
+        outputs=[report_display]
     )
 
-    gr.Markdown("### 👤 说话人身份（结束问诊后）")
-
-    finish = gr.Button("结束问诊")
-    spk_dd = gr.Dropdown(label="说话人")
-    role_dd = gr.Dropdown(["doctor", "nurse", "patient", "family"])
-    name_tb = gr.Textbox(label="姓名")
-    apply = gr.Button("应用")
-
-    finish.click(finish_consult, segments, [mapping, spk_dd])
-    apply.click(apply_mapping, [mapping, spk_dd, role_dd, name_tb], mapping)
-    apply.click(rerender, [segments, mapping], dialog)
-
-demo.launch()
+if __name__ == "__main__":
+    demo.launch(
+        share=False,
+        server_name="0.0.0.0",
+        server_port=7860,
+        show_error=True
+    )

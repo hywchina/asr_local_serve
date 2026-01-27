@@ -7,6 +7,8 @@ import torch
 import numpy as np
 from typing import List, Dict
 
+import matplotlib.pyplot as plt
+
 from fastapi import FastAPI, UploadFile, File, Query
 from fastapi.responses import JSONResponse
 
@@ -14,13 +16,15 @@ from funasr import AutoModel
 from modelscope.pipelines import pipeline
 
 # =====================================================
-# 全局配置
+# 一、全局配置区（模型路径 & 超参数）
 # =====================================================
 
 ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512"
 VAD_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch"
 SD_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common"
+SV_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common"
 
+ORACLE_NUM = 5
 TMP_DIR = "/tmp/asr_sd"
 os.makedirs(TMP_DIR, exist_ok=True)
 
@@ -30,20 +34,22 @@ DEVICE = (
     else "cpu"
 )
 
-MIN_SEGMENT_DUR = 0.3  # 秒
+# =========================
+# 关键超参数
+# =========================
+
+MIN_SEGMENT_DUR = 0.3     # SD 切出来的最小语音段（秒）
+MIN_EMB_SEG_DUR = 0.8     # 少于该时长的段，不参与 speaker embedding
+EMB_SIM_THRESHOLD = 0.62  # embedding 相似度阈值（同一个人的判定）
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SpeechEngine")
 
 # =====================================================
-# 工具函数
+# 二、工具函数
 # =====================================================
 
 def convert_numpy(obj):
-    if isinstance(obj, np.integer):
-        return int(obj)
-    if isinstance(obj, np.floating):
-        return float(obj)
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     if isinstance(obj, dict):
@@ -51,6 +57,12 @@ def convert_numpy(obj):
     if isinstance(obj, list):
         return [convert_numpy(i) for i in obj]
     return obj
+
+
+def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
+    a = a / (np.linalg.norm(a) + 1e-8)
+    b = b / (np.linalg.norm(b) + 1e-8)
+    return float(np.dot(a, b))
 
 
 def run_ffmpeg(cmd):
@@ -64,14 +76,7 @@ def run_ffmpeg(cmd):
 
 def normalize_audio(input_path: str) -> str:
     norm_path = input_path + "_norm.wav"
-    cmd = [
-        "ffmpeg", "-y",
-        "-i", input_path,
-        "-ar", "16000",
-        "-ac", "1",
-        "-vn",
-        norm_path
-    ]
+    cmd = ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", "-vn", norm_path]
     run_ffmpeg(cmd)
     return norm_path
 
@@ -79,14 +84,11 @@ def normalize_audio(input_path: str) -> str:
 def cut_audio(src, start, end, out):
     if end <= start or end - start < MIN_SEGMENT_DUR:
         return False
+
     cmd = [
-        "ffmpeg", "-y",
-        "-i", src,
-        "-ss", f"{start:.3f}",
-        "-to", f"{end:.3f}",
-        "-ar", "16000",
-        "-ac", "1",
-        out
+        "ffmpeg", "-y", "-i", src,
+        "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
+        "-ar", "16000", "-ac", "1", out
     ]
     try:
         run_ffmpeg(cmd)
@@ -96,109 +98,176 @@ def cut_audio(src, start, end, out):
 
 
 # =====================================================
-# 🔥 核心引擎类
+# 三、🔥 Speaker Embedding 相似度 & 热力图
+# =====================================================
+
+def compute_similarity_matrix(embeddings: List[np.ndarray]) -> np.ndarray:
+    n = len(embeddings)
+    mat = np.zeros((n, n), dtype=np.float32)
+    for i in range(n):
+        for j in range(n):
+            mat[i, j] = cosine_sim(embeddings[i], embeddings[j])
+    return mat
+
+
+def plot_similarity_heatmap(
+    sim_matrix: np.ndarray,
+    title: str,
+    save_path: str
+):
+    n = sim_matrix.shape[0]
+
+    plt.figure(figsize=(8, 6))
+    im = plt.imshow(sim_matrix, cmap="hot", vmin=0, vmax=1, origin="lower")
+    plt.colorbar(im)
+
+    plt.xticks(range(n), [f"S{i}" for i in range(n)])
+    plt.yticks(range(n), [f"S{i}" for i in range(n)])
+
+    for i in range(n):
+        for j in range(n):
+            plt.text(j, i, f"{sim_matrix[i, j]:.2f}",
+                     ha="center", va="center",
+                     color="white" if sim_matrix[i, j] < 0.6 else "black",
+                     fontsize=8)
+
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200)
+    plt.close()
+
+    logger.info(f"Speaker embedding 热力图已保存：{save_path}")
+
+
+# =====================================================
+# 四、🔥 核心类：SpeechEngine
 # =====================================================
 
 class SpeechEngine:
-    """
-    统一封装 ASR / SD / 音频处理逻辑
-    """
 
     def __init__(self):
         self._load_models()
+        self.session_speakers = {}
 
     def _load_models(self):
-        logger.info("Loading ASR model...")
+        logger.info("加载 ASR 模型...")
         self.asr_model = AutoModel(
             model=ASR_MODEL_DIR,
             vad_model=VAD_MODEL_DIR,
-            vad_kwargs={"max_single_segment_time": 30000},
             trust_remote_code=True,
-            remote_code="./model.py",
             device=DEVICE,
             disable_update=True,
+            remote_code="./model.py",
         )
-        logger.info("ASR model loaded.")
 
-        logger.info("Loading Speaker Diarization model...")
+        logger.info("加载 SD 模型...")
         self.sd_pipeline = pipeline(
             task="speaker-diarization",
             model=SD_MODEL_DIR,
             model_revision="v1.0.0"
         )
-        logger.info("SD model loaded.")
 
-    # =============================
-    # Speaker Diarization
-    # =============================
-    def diarize(self, wav_path: str) -> List[List[float]]:
-        sd_ret = self.sd_pipeline(wav_path, oracle_num=10)
-        sd_ret = convert_numpy(sd_ret)
-        return sd_ret.get("text", [])
-
-    # =============================
-    # ASR 单段
-    # =============================
-    def asr(self, wav_path: str) -> str:
-        ret = self.asr_model.generate(
-            input=[wav_path],
-            cache={},
-            batch_size=1,
-            language="中文",
-            itn=True
+        logger.info("加载 Speaker Embedding 模型...")
+        self.sv_pipeline = pipeline(
+            task="speaker-verification",
+            model=SV_MODEL_DIR
         )
-        return ret[0].get("text", "").strip()
 
-    # =============================
-    # 主流程
-    # =============================
+    def match_or_create_speaker(self, session_id: str, emb: np.ndarray):
+        bank = self.session_speakers.setdefault(session_id, [])
+        for spk in bank:
+            sim = cosine_sim(spk["emb"], emb)
+            if sim >= EMB_SIM_THRESHOLD:
+                spk["emb"] = 0.9 * spk["emb"] + 0.1 * emb
+                return spk["id"], sim
+        new_id = f"speaker_{len(bank) + 1}"
+        bank.append({"id": new_id, "emb": emb})
+        return new_id, None
+
     def process_audio(self, audio_path: str, session_id: str) -> List[Dict]:
         norm_path = normalize_audio(audio_path)
-        segments = self.diarize(norm_path)
+
+        sd_ret = self.sd_pipeline(norm_path, oracle_num=ORACLE_NUM)
+        segments = convert_numpy(sd_ret).get("text", [])
+        print(f"debug: segments: {segments}")
 
         results = []
-        speaker_map = {}
 
-        for idx, (start, end, spk) in enumerate(segments):
+        # 🔥 用于热力图的 embedding 收集
+        emb_list = []
+
+        print(f"debug: len(segments): {len(segments)}")
+        idx = 0
+        for start, end, _ in segments:
             start, end = float(start), float(end)
-
-            if end - start < MIN_SEGMENT_DUR:
+            dur = end - start
+            if dur < MIN_SEGMENT_DUR:
                 continue
-
-            if spk not in speaker_map:
-                speaker_map[spk] = f"speaker_{len(speaker_map)+1}"
 
             seg_wav = os.path.join(TMP_DIR, f"{uuid.uuid4()}.wav")
             if not cut_audio(norm_path, start, end, seg_wav):
                 continue
 
-            text = self.asr(seg_wav)
+            asr_ret = self.asr_model.generate(
+                input=[seg_wav], batch_size=1, language="中文", itn=True
+            )
+            text = asr_ret[0].get("text", "").strip()
+
+            speaker_id = "unknown"
+            debug = {}
+
+            if dur >= MIN_EMB_SEG_DUR:
+                try:
+                    emb = self.sv_pipeline([seg_wav], output_emb=True)["embs"][0]
+                    emb = np.array(emb, dtype=np.float32)
+                    emb_list.append(emb)
+
+                    print(f"debug:{idx} embedding: {emb}")
+                    idx += 1 
+
+                    speaker_id, sim = self.match_or_create_speaker(session_id, emb)
+                    debug["merge_similarity"] = round(sim, 3) if sim else None
+                except Exception as e:
+                    logger.warning(f"Speaker embedding 失败: {e}")
+
             os.remove(seg_wav)
 
-            if not text:
-                continue
+            if text:
+                results.append({
+                    "start": round(start, 2),
+                    "end": round(end, 2),
+                    "speaker_id": speaker_id,
+                    "seg_id": f"S{idx-1}",
+                    "text": text,
+                    "debug": debug
+                })
 
-            results.append({
-                "start": round(start, 2),
-                "end": round(end, 2),
-                "speaker_id": speaker_map[spk],
-                "text": text,
-                "session_id": session_id
-            })
-
+        # 🔥 绘制 embedding 相似度热力图
+        print(f"debug:emb_list length: {len(emb_list)}")
+        if len(emb_list) >= 2:
+            sim_matrix = compute_similarity_matrix(emb_list)
+            heatmap_path = os.path.join(
+                TMP_DIR, f"speaker_sim_{session_id}.png"
+            )
+            plot_similarity_heatmap(
+                sim_matrix,
+                title=f"Session {session_id} Speaker Embedding Similarity",
+                save_path=heatmap_path
+            )
+        print(f"debug:heatmap_path : {heatmap_path}")
         os.remove(norm_path)
         return results
 
 
 # =====================================================
-# FastAPI
+# 五、FastAPI
 # =====================================================
 
 engine = SpeechEngine()
 
 app = FastAPI(
-    title="ASR + Speaker Diarization Server",
-    version="2.0"
+    title="ASR + SD + Speaker Embedding + Heatmap",
+    version="2.2"
 )
 
 @app.post("/asr_sd")
@@ -207,8 +276,10 @@ def asr_sd(
     session_id: str = Query(...)
 ):
     audio_id = str(uuid.uuid4())
-    suffix = os.path.splitext(file.filename)[-1]
-    raw_path = os.path.join(TMP_DIR, audio_id + suffix)
+    raw_path = os.path.join(
+        TMP_DIR,
+        audio_id + os.path.splitext(file.filename)[-1]
+    )
 
     with open(raw_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
@@ -219,9 +290,6 @@ def asr_sd(
             "session_id": session_id,
             "segments": segments
         })
-    except Exception as e:
-        logger.exception("Processing failed")
-        return JSONResponse(status_code=500, content={"error": str(e)})
     finally:
         if os.path.exists(raw_path):
             os.remove(raw_path)

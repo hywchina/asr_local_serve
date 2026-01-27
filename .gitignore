@@ -5,3 +5,4 @@ __pycache__/
 venv/
 .idea/
 .DS_Store
+asr_sd

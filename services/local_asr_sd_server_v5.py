@@ -40,7 +40,7 @@ DEVICE = (
 
 MIN_SEGMENT_DUR = 0.3     # SD 切出来的最小语音段（秒）
 MIN_EMB_SEG_DUR = 0.8     # 少于该时长的段，不参与 speaker embedding
-EMB_SIM_THRESHOLD = 0.62  # embedding 相似度阈值（同一个人的判定）
+EMB_SIM_THRESHOLD = 0.5  # embedding 相似度阈值（同一个人的判定）
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SpeechEngine")
@@ -195,9 +195,12 @@ class SpeechEngine:
 
         # 🔥 用于热力图的 embedding 收集
         emb_list = []
+        # 🔁 当前音频内的说话人聚类（不跨会话累计）
+        local_bank = []  # 每个元素仅保存聚类中心 emb
 
         print(f"debug: len(segments): {len(segments)}")
-        idx = 0
+        emb_idx = 0   # 仅统计参与 embedding 的片段数
+        seg_idx = 0   # 序号化返回的文本片段
         for start, end, _ in segments:
             start, end = float(start), float(end)
             dur = end - start
@@ -222,28 +225,46 @@ class SpeechEngine:
                     emb = np.array(emb, dtype=np.float32)
                     emb_list.append(emb)
 
-                    print(f"debug:{idx} embedding: {emb}")
-                    idx += 1 
+                    print(f"debug:{emb_idx} embedding: {emb}")
+                    emb_idx += 1
 
-                    speaker_id, sim = self.match_or_create_speaker(session_id, emb)
-                    debug["merge_similarity"] = round(sim, 3) if sim else None
+                    # 在当前音频的局部说话人库中进行匹配/合并
+                    matched_id = None
+                    matched_sim = None
+                    for i, spk in enumerate(local_bank):
+                        sim = cosine_sim(spk["emb"], emb)
+                        if sim >= EMB_SIM_THRESHOLD:
+                            # 轻微更新聚类中心
+                            spk["emb"] = 0.9 * spk["emb"] + 0.1 * emb
+                            matched_id = f"speaker_{i + 1}"
+                            matched_sim = sim
+                            break
+
+                    if matched_id is None:
+                        local_bank.append({"emb": emb})
+                        matched_id = f"speaker_{len(local_bank)}"
+
+                    speaker_id = matched_id
+                    debug["merge_similarity"] = round(matched_sim, 3) if matched_sim else None
                 except Exception as e:
                     logger.warning(f"Speaker embedding 失败: {e}")
 
             os.remove(seg_wav)
 
             if text:
+                seg_idx += 1
                 results.append({
                     "start": round(start, 2),
                     "end": round(end, 2),
                     "speaker_id": speaker_id,
-                    "seg_id": f"S{idx-1}",
+                    "seg_id": f"S{seg_idx}",
                     "text": text,
                     "debug": debug
                 })
 
         # 🔥 绘制 embedding 相似度热力图
         print(f"debug:emb_list length: {len(emb_list)}")
+        heatmap_path = None
         if len(emb_list) >= 2:
             sim_matrix = compute_similarity_matrix(emb_list)
             heatmap_path = os.path.join(
@@ -254,7 +275,8 @@ class SpeechEngine:
                 title=f"Session {session_id} Speaker Embedding Similarity",
                 save_path=heatmap_path
             )
-        print(f"debug:heatmap_path : {heatmap_path}")
+        if heatmap_path:
+            print(f"debug:heatmap_path : {heatmap_path}")
         os.remove(norm_path)
         return results
 

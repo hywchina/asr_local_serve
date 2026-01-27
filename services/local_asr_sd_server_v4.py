@@ -68,12 +68,14 @@ def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
 def summarize_embeddings(results):
     vectors = []
     speakers = []
+    seg_labels = []
     for seg in results:
         emb = seg.get("embedding")
         if emb is None:
             continue
         vectors.append(np.array(emb, dtype=np.float32).reshape(-1))
         speakers.append(seg.get("speaker", ""))
+        seg_labels.append(seg.get("speaker", "") + f"#{len(seg_labels)}")
 
     n = len(vectors)
     if n < 2:
@@ -103,6 +105,19 @@ def summarize_embeddings(results):
     summary = {
         "same_speaker": stat(same),
         "diff_speaker": stat(diff),
+    }
+
+    # 段级别矩阵（按时间顺序，一段一个点）
+    seg_n = len(vectors)
+    seg_matrix = [[None for _ in range(seg_n)] for _ in range(seg_n)]
+    for i in range(seg_n):
+        for j in range(seg_n):
+            if i == j:
+                continue
+            seg_matrix[i][j] = cosine_sim(vectors[i], vectors[j])
+    summary["segment_matrix"] = {
+        "labels": seg_labels,
+        "matrix": seg_matrix,
     }
 
     # speaker-level平均相似度矩阵
@@ -277,7 +292,7 @@ def asr_with_speaker(file: UploadFile = File(...), debug_similarity: bool = Fals
 
         for idx, (start, end, speaker_id) in enumerate(segments):
             if speaker_id not in speaker_map:
-                speaker_map[speaker_id] = f"用户{len(speaker_map) + 1}"
+                speaker_map[speaker_id] = f"speaker{len(speaker_map) + 1}"
 
             seg_wav = os.path.join(TMP_DIR, f"{audio_id}_{idx}.wav")
 
@@ -311,17 +326,19 @@ def asr_with_speaker(file: UploadFile = File(...), debug_similarity: bool = Fals
                 "end": round(end, 2),
                 "speaker": speaker_map[speaker_id],
                 "text": text,
-                "embedding": embedding
+                # "embedding": embedding
             })
 
             os.remove(seg_wav)
 
         if debug_similarity:
             summary = summarize_embeddings(results)
-            matrix_info = summary.get("speaker_matrix")
+            # 优先段级矩阵
+            matrix_info = summary.get("segment_matrix") or summary.get("speaker_matrix")
             if matrix_info and MATPLOTLIB_AVAILABLE:
                 heatmap_path = os.path.join(TMP_DIR, f"{audio_id}_sim.png")
-                saved = save_similarity_heatmap(matrix_info.get("matrix", []), matrix_info.get("speakers", []), heatmap_path)
+                labels = matrix_info.get("labels") or matrix_info.get("speakers", [])
+                saved = save_similarity_heatmap(matrix_info.get("matrix", []), labels, heatmap_path)
                 summary["heatmap_image"] = saved
             else:
                 summary["heatmap_image"] = None if MATPLOTLIB_AVAILABLE else "matplotlib_not_installed"

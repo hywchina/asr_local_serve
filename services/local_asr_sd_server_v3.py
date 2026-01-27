@@ -16,9 +16,16 @@ from modelscope.utils.constant import Tasks
 # 配置区
 # =====================================================
 
-ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512"
+ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512" # 音频转文本
+"""
+1. 作用：
+2. 输入：
+3. 输出：
+4. 注意事项：
+"""
+
 VAD_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch"
-SD_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common"
+SD_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common" # 输入音频，
 
 TMP_DIR = "/tmp/asr_sd"
 os.makedirs(TMP_DIR, exist_ok=True)
@@ -105,10 +112,17 @@ asr_model = AutoModel(
 print("ASR model loaded.")
 
 print("Loading Speaker Diarization model...")
+# sd_pipeline = pipeline(
+#     task=Tasks.speaker_diarization,
+#     model=SD_MODEL_DIR
+# )
+
 sd_pipeline = pipeline(
-    task=Tasks.speaker_diarization,
-    model=SD_MODEL_DIR
+    task='speaker-diarization',
+    model=SD_MODEL_DIR,
+    model_revision='v1.0.0'
 )
+
 print("SD model loaded.")
 
 # =====================================================
@@ -136,10 +150,11 @@ def asr_with_speaker(file: UploadFile = File(...)):
         norm_audio_path = normalize_audio(raw_audio_path)
 
         # 1️⃣ Speaker Diarization
-        sd_result = sd_pipeline(norm_audio_path)
+        sd_result = sd_pipeline(norm_audio_path,oracle_num=5)
         sd_result = convert_numpy(sd_result)
 
         segments = sd_result.get("text", [])
+        print(f"debug: {segments} segments.")    
         results = []
         speaker_map = {}
 

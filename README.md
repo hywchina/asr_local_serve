@@ -16,7 +16,9 @@ curl -X POST http://localhost:8002/asr_sd \
   -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
 | jq
 
-curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" | j
+curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" | jq
+
+curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/n_peoples_sample.mp3" | jq
 
 
 

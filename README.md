@@ -24,7 +24,7 @@ curl -X POST 'http://localhost:8002/asr_sd' -F "file=@/home/huyanwei/projects/as
 curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
   -H "accept: application/json" \
   -H "Content-Type: multipart/form-data" \
-  -F "file=@/home/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
+  -F "file=@/Users/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
 
 # 本地模型配置
 注意这个模型文件的配置，需要将其他几个本地模型的路径放在该模型配置中
@@ -158,11 +158,11 @@ SV_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_z
 1. FunAudioLLM/Fun-ASR-Nano-2512
 2. iic/speech_fsmn_vad_zh-cn-16k-common-pytorch
 3. iic/speech_campplus_speaker-diarization_common
-4. mlx-community/speech_campplus_sv_zh-cn_16k-common
-5. iic/speech_campplus-transformer_scl_zh-cn_16k-common
+4. iic/speech_campplus-transformer_scl_zh-cn_16k-common
+5. iic/speech_campplus_sv_zh-cn_16k-common
 
 modelscope download --model FunAudioLLM/Fun-ASR-Nano-2512 --local_dir ./models/Fun-ASR-Nano-2512
 modelscope download --model iic/speech_fsmn_vad_zh-cn-16k-common-pytorch --local_dir ./models/speech_fsmn_vad_zh-cn-16k-common-pytorch
 modelscope download --model iic/speech_campplus_speaker-diarization_common --local_dir ./models/speech_campplus_speaker-diarization_common
-modelscope download --model mlx-community/speech_campplus_sv_zh-cn_16k-common --local_dir ./models/speech_campplus_sv_zh-cn_16k-common
+modelscope download --model iic/speech_campplus_sv_zh-cn_16k-common --local_dir ./models/speech_campplus_sv_zh-cn_16k-common
 modelscope download --model iic/speech_campplus-transformer_scl_zh-cn_16k-common --local_dir ./models/speech_campplus-transformer_scl_zh-cn_16k-common

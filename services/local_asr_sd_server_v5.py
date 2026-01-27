@@ -7,6 +7,8 @@ import torch
 import numpy as np
 from typing import List, Dict
 
+import matplotlib
+matplotlib.use('Agg')  # 非交互式 backend
 import matplotlib.pyplot as plt
 
 from fastapi import FastAPI, UploadFile, File, Query
@@ -19,20 +21,21 @@ from modelscope.pipelines import pipeline
 # 一、全局配置区（模型路径 & 超参数）
 # =====================================================
 
-ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512"
-VAD_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch"
-SD_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common"
-SV_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common"
+ASR_MODEL_DIR = "/Users/huyanwei/projects/asr_local_serve/models/Fun-ASR-Nano-2512"
+VAD_MODEL_DIR = "/Users/huyanwei/projects/asr_local_serve/models/speech_fsmn_vad_zh-cn-16k-common-pytorch"
+SD_MODEL_DIR  = "/Users/huyanwei/projects/asr_local_serve/models/speech_campplus_speaker-diarization_common"
+SV_MODEL_DIR  = "/Users/huyanwei/projects/asr_local_serve/models/speech_campplus_sv_zh-cn_16k-common"
 
 ORACLE_NUM = 5
 TMP_DIR = "/tmp/asr_sd"
 os.makedirs(TMP_DIR, exist_ok=True)
 
-DEVICE = (
-    "cuda:0" if torch.cuda.is_available()
-    else "mps" if torch.backends.mps.is_available()
-    else "cpu"
-)
+# DEVICE = (
+#     "cuda:0" if torch.cuda.is_available()
+#     else "mps" if torch.backends.mps.is_available()
+#     else "cpu"
+# )
+DEVICE = "cpu"
 
 # =========================
 # 关键超参数
@@ -156,6 +159,7 @@ class SpeechEngine:
             vad_model=VAD_MODEL_DIR,
             trust_remote_code=True,
             device=DEVICE,
+            dtype="float32",  
             disable_update=True,
             remote_code="./model.py",
         )

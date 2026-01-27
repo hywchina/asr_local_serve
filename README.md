@@ -141,3 +141,28 @@ https://yb.tencent.com/s/sc/QvWNy1CAOj4nI9S
   2. 把相邻同一人说话内容进行合并展示，例如 说话人1: 时间段【a，b】说话内容xxx，说话人1:时间段【b，c】，说话内容yyy，合并后 说话人1:时间段【a，c】，说话内容 xxxyyy。
   3. 统计一共有多少说话人数n，在“说话人身份设置”显示n个身份映射行，可以对说话人身份id进行映射，身份分两大类：医院（医生、护士、等），病人（患者、陪诊等）。即说话人1: 是王医生，说话人2:患者1 等等设定，设定完成之后，实时对话转录窗口的说话人id就要转变成设定的身份了。 同时在，在设置了说话人身份了之后，所有医院人员（医生护士等）放到对话的右侧（类似医生视角的聊天窗口），所有病人相关人员聊天内容放在左侧。
   4. 点击“生成结构化报告”，即将相关信息放到结构化报告模板中（待开发）
+
+
+
+
+
+### 本地模型配置
+Fun-ASR-Nano-2512
+
+ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512"
+VAD_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch"
+SD_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common"
+SV_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common"
+
+
+1. FunAudioLLM/Fun-ASR-Nano-2512
+2. iic/speech_fsmn_vad_zh-cn-16k-common-pytorch
+3. iic/speech_campplus_speaker-diarization_common
+4. mlx-community/speech_campplus_sv_zh-cn_16k-common
+5. iic/speech_campplus-transformer_scl_zh-cn_16k-common
+
+modelscope download --model FunAudioLLM/Fun-ASR-Nano-2512 --local_dir ./models/Fun-ASR-Nano-2512
+modelscope download --model iic/speech_fsmn_vad_zh-cn-16k-common-pytorch --local_dir ./models/speech_fsmn_vad_zh-cn-16k-common-pytorch
+modelscope download --model iic/speech_campplus_speaker-diarization_common --local_dir ./models/speech_campplus_speaker-diarization_common
+modelscope download --model mlx-community/speech_campplus_sv_zh-cn_16k-common --local_dir ./models/speech_campplus_sv_zh-cn_16k-common
+modelscope download --model iic/speech_campplus-transformer_scl_zh-cn_16k-common --local_dir ./models/speech_campplus-transformer_scl_zh-cn_16k-common

@@ -38,8 +38,6 @@ class ConsultationState:
         self.last_rendered_version = -1
         self.last_ui_render_time = 0.0
         self.cached_transcript_html = ""
-        self.buffer_lock = threading.Lock()  # 保护音频缓冲区的锁
-        self.is_processing = False  # 标记是否正在处理音频块
         
     def reset(self):
         self.__init__()
@@ -337,7 +335,6 @@ def process_audio_chunk(audio_chunk, sample_rate):
 def start_consultation():
     """开始问诊"""
     state.reset()
-    state.session_id = uuid.uuid4().hex  # 为本次问诊生成session_id
     state.is_recording = True
     state.start_time = datetime.now()
     state.cached_transcript_html = format_transcript_html([], False, {})
@@ -378,25 +375,17 @@ def stop_consultation():
     """结束问诊"""
     state.is_recording = False
     
-    # 等待当前处理完成
-    while state.is_processing:
-        time.sleep(0.1)
-    
-    # 🔒 处理缓冲区中的剩余音频（加锁保护）
-    with state.buffer_lock:
-        if state.audio_buffer and state.total_audio_samples > 0:
-            combined_audio = np.concatenate(state.audio_buffer)
-            state.audio_buffer = []
-            state.total_audio_samples = 0
-        else:
-            combined_audio = None
-    
-    if combined_audio is not None and len(combined_audio) > SAMPLE_RATE:  # 至少1秒
-        voice_ok, voiced_secs = has_enough_voice(combined_audio, SAMPLE_RATE)
-        if voice_ok:
-            process_audio_chunk(combined_audio, SAMPLE_RATE)
-        else:
-            print(f"Skip final chunk: voiced {voiced_secs:.2f}s < min")
+    # 处理缓冲区中的剩余音频
+    if state.audio_buffer and state.total_audio_samples > 0:
+        combined_audio = np.concatenate(state.audio_buffer)
+        if len(combined_audio) > SAMPLE_RATE:  # 至少1秒
+            voice_ok, voiced_secs = has_enough_voice(combined_audio, SAMPLE_RATE)
+            if voice_ok:
+                process_audio_chunk(combined_audio, SAMPLE_RATE)
+            else:
+                print(f"Skip final chunk: voiced {voiced_secs:.2f}s < min")
+        state.audio_buffer = []
+        state.total_audio_samples = 0
     
     # 等待录音线程结束
     if state.recording_thread and state.recording_thread.is_alive():
@@ -434,36 +423,25 @@ def on_audio_stream(audio_data):
     audio_data: tuple (sample_rate, audio_array)
     """
     now = time.time()
-    
-    # 🐛 调试：检查音频数据
-    if audio_data is not None:
-        print(f"[DEBUG] 收到音频数据: type={type(audio_data)}, is_recording={state.is_recording}, is_paused={state.is_paused}")
-        if isinstance(audio_data, tuple) and len(audio_data) == 2:
-            print(f"[DEBUG] sample_rate={audio_data[0]}, audio_shape={audio_data[1].shape if hasattr(audio_data[1], 'shape') else 'no shape'}")
 
     if not state.is_recording or state.is_paused:
-        with state.buffer_lock:
-            current_samples = state.total_audio_samples
         transcript_html = state.cached_transcript_html or format_transcript_html(
             state.transcripts, state.mapping_done, state.speaker_mapping
         )
         return (
             gr.update(value=transcript_html),
             f"{len(state.transcripts)} 条对话",
-            f"累积音频: {current_samples / SAMPLE_RATE:.1f}秒"
+            f"累积音频: {state.total_audio_samples / SAMPLE_RATE:.1f}秒"
         )
     
     if audio_data is None:
-        print("[DEBUG] audio_data is None")
-        with state.buffer_lock:
-            current_samples = state.total_audio_samples
         transcript_html = state.cached_transcript_html or format_transcript_html(
             state.transcripts, state.mapping_done, state.speaker_mapping
         )
         return (
             gr.update(value=transcript_html),
             f"{len(state.transcripts)} 条对话",
-            f"累积音频: {current_samples / SAMPLE_RATE:.1f}秒"
+            f"累积音频: {state.total_audio_samples / SAMPLE_RATE:.1f}秒"
         )
     
     sample_rate, audio_array = audio_data
@@ -472,46 +450,33 @@ def on_audio_stream(audio_data):
     if len(audio_array.shape) > 1:
         audio_array = audio_array.mean(axis=1)
     
-    # 🔒 始终累积音频到缓冲区（加锁保护）
-    with state.buffer_lock:
-        state.audio_buffer.append(audio_array)
-        state.total_audio_samples += len(audio_array)
-        current_duration = state.total_audio_samples / SAMPLE_RATE
-        should_process = (state.total_audio_samples >= MIN_AUDIO_LENGTH 
-                         and not state.is_processing)
+    # 累积音频到缓冲区
+    state.audio_buffer.append(audio_array)
+    state.total_audio_samples += len(audio_array)
     
-    # 🐛 调试输出
-    if current_duration > 0 and int(current_duration) % 5 == 0 and current_duration < int(current_duration) + 0.5:
-        print(f"[DEBUG] 累积音频: {current_duration:.1f}秒, 需要: {MIN_AUDIO_LENGTH/SAMPLE_RATE:.1f}秒, should_process={should_process}, is_processing={state.is_processing}")
-    
+    current_duration = state.total_audio_samples / SAMPLE_RATE
     status_msg = f"累积音频: {current_duration:.1f}秒"
     
-    # 检查是否累积到足够长度且当前没有在处理
+    # 检查是否累积到足够长度
     transcript_html = state.cached_transcript_html or format_transcript_html(
         state.transcripts, state.mapping_done, state.speaker_mapping
     )
     html_update = gr.update(value=transcript_html)
 
-    if should_process:
-        # 标记为处理中
-        state.is_processing = True
-        
-        # 🔒 获取当前缓冲区并清空（加锁保护）
-        with state.buffer_lock:
-            combined_audio = np.concatenate(state.audio_buffer)
-            state.audio_buffer = []  # 清空缓冲区，新音频会继续累积到新buffer
-            state.total_audio_samples = 0
-        
-        # 🚀 在锁外进行耗时操作（不阻塞新音频累积）
+    if state.total_audio_samples >= MIN_AUDIO_LENGTH:
+        combined_audio = np.concatenate(state.audio_buffer)
+
         voice_ok, voiced_secs = has_enough_voice(combined_audio, sample_rate)
 
         if not voice_ok:
-            status_msg = f"⚠️ 语音太短/太静({voiced_secs:.1f}s),已跳过"
+            status_msg = f"⚠️ 语音太短/太静({voiced_secs:.1f}s),继续累积..."
             html_update = gr.update()  # 不更新HTML
         else:
             success = process_audio_chunk(combined_audio, sample_rate)
             
             if success:
+                state.audio_buffer = []
+                state.total_audio_samples = 0
                 status_msg = f"✓ 已处理第 {state.processed_chunks} 段音频 (语音{voiced_secs:.1f}s)"
                 # 有新内容时刷新缓存并记录渲染时间,减少闪烁
                 transcript_html = format_transcript_html(state.transcripts, state.mapping_done, state.speaker_mapping)
@@ -520,11 +485,8 @@ def on_audio_stream(audio_data):
                 state.last_ui_render_time = now
                 html_update = gr.update(value=transcript_html)
             else:
-                status_msg = f"⚠️ 处理失败"
+                status_msg = f"⚠️ 处理失败,继续累积... {current_duration:.1f}秒"
                 html_update = gr.update()
-        
-        # 处理完成，释放标记
-        state.is_processing = False
     else:
         # 没有新内容且距离上次渲染过短时,直接复用缓存以降低刷新频率
         need_render = (

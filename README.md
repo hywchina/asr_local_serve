@@ -18,9 +18,13 @@ curl -X POST http://localhost:8002/asr_sd \
 
 curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" | jq
 
-curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/n_peoples_sample.mp3" | jq
+curl -X POST 'http://localhost:8002/asr_sd' -F "file=@/home/huyanwei/projects/asr_local_serve/data/n_peoples_sample.mp3" | jq
 
 
+curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/home/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
 
 # 本地模型配置
 注意这个模型文件的配置，需要将其他几个本地模型的路径放在该模型配置中

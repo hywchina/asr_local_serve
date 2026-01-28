@@ -190,19 +190,29 @@ class SpeechEngine:
 
     def process_audio(self, audio_path: str, session_id: str) -> List[Dict]:
         norm_path = normalize_audio(audio_path)
-
-        sd_ret = self.sd_pipeline(norm_path, oracle_num=ORACLE_NUM)
-        segments = convert_numpy(sd_ret).get("text", [])
-        print(f"debug: segments: {segments}")
+        try:
+            sd_ret = self.sd_pipeline(norm_path, oracle_num=ORACLE_NUM)
+            segments = convert_numpy(sd_ret).get("text", [])
+            print(f"debug: segments: {segments}")
+        except AssertionError as e:
+            logger.warning(f"SD 处理失败（音频过短等原因）: {e}")
+            os.remove(norm_path)
+            return []
+        except Exception as e:
+            logger.exception(f"SD 处理异常: {e}")
+            os.remove(norm_path)
+            return []
 
         results = []
 
         # 🔥 用于热力图的 embedding 收集
         emb_list = []
-        # 🔁 当前音频内的说话人聚类（不跨会话累计）
-        local_bank = []  # 每个元素仅保存聚类中心 emb
+        
+        # 🔥 使用全局会话级说话人库，确保跨请求的说话人ID一致性
+        global_bank = self.session_speakers.setdefault(session_id, [])
 
         print(f"debug: len(segments): {len(segments)}")
+        print(f"debug: current session has {len(global_bank)} known speakers")
         emb_idx = 0   # 仅统计参与 embedding 的片段数
         seg_idx = 0   # 序号化返回的文本片段
         for start, end, _ in segments:
@@ -229,27 +239,36 @@ class SpeechEngine:
                     emb = np.array(emb, dtype=np.float32)
                     emb_list.append(emb)
 
-                    print(f"debug:{emb_idx} embedding: {emb}")
+                    print(f"debug:{emb_idx} embedding shape: {emb.shape}")
                     emb_idx += 1
 
-                    # 在当前音频的局部说话人库中进行匹配/合并
+                    # 🔥 在全局会话说话人库中进行匹配（跨请求一致性）
                     matched_id = None
                     matched_sim = None
-                    for i, spk in enumerate(local_bank):
+                    best_match_idx = None
+                    
+                    for i, spk in enumerate(global_bank):
                         sim = cosine_sim(spk["emb"], emb)
                         if sim >= EMB_SIM_THRESHOLD:
-                            # 轻微更新聚类中心
-                            spk["emb"] = 0.9 * spk["emb"] + 0.1 * emb
-                            matched_id = f"speaker_{i + 1}"
-                            matched_sim = sim
-                            break
-
-                    if matched_id is None:
-                        local_bank.append({"emb": emb})
-                        matched_id = f"speaker_{len(local_bank)}"
+                            if matched_sim is None or sim > matched_sim:
+                                matched_sim = sim
+                                best_match_idx = i
+                    
+                    if best_match_idx is not None:
+                        # 更新说话人embedding（指数移动平均）
+                        global_bank[best_match_idx]["emb"] = (
+                            0.9 * global_bank[best_match_idx]["emb"] + 0.1 * emb
+                        )
+                        matched_id = global_bank[best_match_idx]["id"]
+                    else:
+                        # 创建新说话人
+                        new_id = f"speaker_{len(global_bank) + 1}"
+                        global_bank.append({"id": new_id, "emb": emb})
+                        matched_id = new_id
 
                     speaker_id = matched_id
                     debug["merge_similarity"] = round(matched_sim, 3) if matched_sim else None
+                    debug["is_new_speaker"] = matched_sim is None
                 except Exception as e:
                     logger.warning(f"Speaker embedding 失败: {e}")
 
@@ -292,8 +311,8 @@ class SpeechEngine:
 engine = SpeechEngine()
 
 app = FastAPI(
-    title="ASR + SD + Speaker Embedding + Heatmap",
-    version="2.2"
+    title="ASR + SD + Speaker Embedding (Session-Persistent)",
+    version="2.3"
 )
 
 @app.post("/asr_sd")
@@ -321,10 +340,27 @@ def asr_sd(
             os.remove(raw_path)
 
 
+@app.post("/reset_session")
+def reset_session(session_id: str = Query(...)):
+    """重置指定会话的说话人库"""
+    if session_id in engine.session_speakers:
+        del engine.session_speakers[session_id]
+        logger.info(f"已重置会话 {session_id} 的说话人库")
+        return JSONResponse({
+            "status": "success",
+            "message": f"Session {session_id} has been reset"
+        })
+    else:
+        return JSONResponse({
+            "status": "info",
+            "message": f"Session {session_id} not found or already empty"
+        })
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "local_asr_sd_server_v5:app",
+        "local_asr_sd_server_v6:app",
         host="0.0.0.0",
         port=8002,
         reload=False

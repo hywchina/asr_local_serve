@@ -24,7 +24,7 @@ curl -X POST 'http://localhost:8002/asr_sd' -F "file=@/home/huyanwei/projects/as
 curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
   -H "accept: application/json" \
   -H "Content-Type: multipart/form-data" \
-  -F "file=@/Users/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
+  -F "file=@/home/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
 
 # 本地模型配置
 注意这个模型文件的配置，需要将其他几个本地模型的路径放在该模型配置中
@@ -60,58 +60,6 @@ curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
 
 
 
-
-https://yb.tencent.com/s/sc/QvWNy1CAOj4nI9S
-
-### 阶段 1：问诊进行中（实时）
-- 点击【开始问诊】
-- **立即开始录音**
-
-- 前端完成：
-  语音切分，分段请求后端api
-
-- 后端完成：
-  - ASR
-  - 说话人分离
-
-- **实时转录窗口实时更新**：
-- 此时：
-  - ❌ 不知道身份
-  - ❌ 不知道有几个人
-  - ✅ 只能显示 `说话人1 / 说话人2`
-  - ✅ 所有内容 **统一在左侧**
-
-------
-
-### 阶段 2：暂停
-- 点击【暂停】
-- 暂停录音
-- 后端完成：停止数据传输，避免暂用资源
-- 前端此时：没有变化
-
-------
-### 阶段 3：问诊结束（一次性）
-
-- 点击【结束问诊】
-- 停止录音
-- 前端此时才：
-  - 统计 speaker 数量
-  - 合并同一说话者，相邻时间段说话内容
-  - 自动生成身份映射表单
-------
-
-### 阶段 4：身份映射完成
-
-- 用户设置：
-  - 说话人1 → 王医生
-  - 说话人2 → 患者
-- **实时转录窗口立即重排**：
-  - 👨‍⚕️ 医护 → 右侧
-  - 👤 患者 / 家属 → 左侧
-- 此时：
-  - 才允许点击【生成结构化报告】
-
-
 ### 阶段1： 初始状态
 前端：
   1. 主要的三个按钮：开始问诊、暂停、结束问诊
@@ -135,7 +83,7 @@ https://yb.tencent.com/s/sc/QvWNy1CAOj4nI9S
 前端：点击【暂停】，暂停录音
 后端：停止数据传输，避免暂用资源
   
-### 阶段 3：问诊结束（一次性）
+### 阶段 4：问诊结束（一次性）
 前端：
   1. 点击【结束问诊】，结束录音
   2. 把相邻同一人说话内容进行合并展示，例如 说话人1: 时间段【a，b】说话内容xxx，说话人1:时间段【b，c】，说话内容yyy，合并后 说话人1:时间段【a，c】，说话内容 xxxyyy。

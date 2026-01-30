@@ -1,38 +1,7 @@
-# 测试asr：
-curl -X POST http://localhost:8000/asr \
-  -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
-  -F "hotwords=开放时间"
+## 1. 需求描述
 
 
-# 测试sd ，jq 是json格式化作用
-curl -s -X POST "http://127.0.0.1:8001/diarization" \
-  -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
-| jq
-
-
-
-# 测试asr_sd 服务https://modelscope.cn/papers/
-curl -X POST http://localhost:8002/asr_sd \
-  -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
-| jq
-
-curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" | jq
-
-curl -X POST 'http://localhost:8002/asr_sd' -F "file=@/home/huyanwei/projects/asr_local_serve/data/n_peoples_sample.mp3" | jq
-
-
-curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
-  -H "accept: application/json" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/home/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
-
-# 本地模型配置
-注意这个模型文件的配置，需要将其他几个本地模型的路径放在该模型配置中
-/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common/configuration.json
-
-
-
-## 需求
+需求
 1. 问诊流程重构
 实时对话模拟：模拟医生问诊过程的对话流转，支持开始、暂停、停止控制
 场景化问诊：提供多种预定义问诊场景（头痛症状、多人会诊、家属陪诊等）
@@ -47,17 +16,12 @@ curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
 专业报告格式：包含病人基本信息、症状描述、诊断建议等标准化章节
 
 
-
-## prompt1 
-
 实时转录功能：
 1. 点击开始问诊后，实时对话转录窗口是实时转录，但是此时是不知道这些人的身份的，因为会话时，可能是多人对话，可能有多个医生，多个病人或陪诊人员，因为实时对话转录窗口 在没有结束问诊时，都应该用说话人id来代替，
 2. 当点击“结束问诊”时，前端页面可以对说话人身份id进行映射，即说话人1: 是王医生，说话人2:患者1 等等设定，设定完成之后，实时对话转录窗口的说话人id就要转变成设定的身份了。
 3. 在点击“结束问诊”前，所有说话人说话内容均放在左侧。在设置了说话人身份了之后，所有医院人员（医生护士等）放到对话的右侧（类似医生视角的聊天窗口），所有病人相关人员聊天内容放在左侧。
 4. 逻辑上时间顺序是：问诊结束后，共识别出几个人会话，然后在说话人设置的为止自动添加说话人，而不是事先就知道有几个说话人；同时结构报告，也是在设定说话人身份后，点击生成，才会生成的；
 5. api服务代码不动，只通过前端代码，即可做到伪实时，比如说，前端录音，进行固定时间切分，逐个段落进行请求后端api，同时前端吧相邻同一人说话内容进行合并展示，这样不就好了吗
-
-
 
 
 ### 阶段1： 初始状态
@@ -93,9 +57,10 @@ curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
 
 
 
+## 2. 环境配置
 
-### 本地模型配置
-Fun-ASR-Nano-2512
+注意这个模型文件的配置，需要将其他几个本地模型的路径放在该模型配置中
+/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common/configuration.json
 
 ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512"
 VAD_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch"
@@ -114,3 +79,69 @@ modelscope download --model iic/speech_fsmn_vad_zh-cn-16k-common-pytorch --local
 modelscope download --model iic/speech_campplus_speaker-diarization_common --local_dir ./models/speech_campplus_speaker-diarization_common
 modelscope download --model iic/speech_campplus_sv_zh-cn_16k-common --local_dir ./models/speech_campplus_sv_zh-cn_16k-common
 modelscope download --model iic/speech_campplus-transformer_scl_zh-cn_16k-common --local_dir ./models/speech_campplus-transformer_scl_zh-cn_16k-common
+
+
+
+## 3. 测试 
+
+
+### 测试asr：
+curl -X POST http://localhost:8000/asr \
+  -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
+  -F "hotwords=开放时间"
+
+
+### 测试sd ，jq 是json格式化作用
+curl -s -X POST "http://127.0.0.1:8001/diarization" \
+  -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
+| jq
+
+
+
+### 测试asr_sd 服务https://modelscope.cn/papers/
+curl -X POST http://localhost:8002/asr_sd \
+  -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" \
+| jq
+
+curl -X POST 'http://localhost:8002/asr_sd?debug_similarity=true' -F "file=@/home/huyanwei/projects/asr_local_serve/data/speakers_example.wav" | jq
+
+curl -X POST 'http://localhost:8002/asr_sd' -F "file=@/home/huyanwei/projects/asr_local_serve/data/n_peoples_sample.mp3" | jq
+
+
+curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/home/huyanwei/projects/asr_local_serve/data/3peoples.mp3" |jq
+
+
+## 4. debug 记录
+
+阅读前后端代码，然后辅助我完善代码
+
+前端代码：/home/huyanwei/projects/asr_local_serve/services/gradio_asr_demo_v3.py
+后端代码：/home/huyanwei/projects/asr_local_serve/services/local_asr_sd_server_v6.py
+
+问题：
+1. 前端录音会缺失 WARNING:SpeechEngine:SD 处理失败（音频过短等原因）: modelscope error: The effective audio duration is too short.
+2. 身份分两大类：医院（医生、护士、等），病人（患者、陪诊等）,UI上需要使用下拉框或者其他形式工用户选择，而不是手动填写
+3. 实时转录窗口中，对话内容出现会在最低下出现，需要手动滑倒最底下才能看到最新的内容，需要类似聊天窗口那种呈现形式，最新的转录内容要能在窗口内显示，避免人工翻阅
+
+
+4. 这是从1 数到100（100秒） 的录音转换结果，感觉切的太零散了
+[1.6s-3.5s] speaker_1: 一二。
+
+[3.8s-4.5s] unknown: 三。
+
+[4.8s-5.5s] unknown: 是。
+
+[6.8s-8.8s] speaker_1: 六七
+
+
+5. 当前端一段时间没有声音时，后端api 会提示：WARNING:SpeechEngine:SD 处理失败（音频过短等原因）: modelscope error: The effective audio duration is too short.前端代码会提示：
+Sending 31.0s audio to backend...
+Received 0 segments
+
+但是继续说话后，就不能继续转录了，前端ui提示：语音有效时长不足，继续累积中...，但是实际上已经有声音再说话了
+
+
+6. 仔细检查代码逻辑，梳理语音处理顺序，避免有缺失、遗漏处理的情况，现在还是能发现：长时间没人说话情况下，再次说话的声音没有被识别转文字

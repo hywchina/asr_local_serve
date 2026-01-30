@@ -45,6 +45,11 @@ MIN_SEGMENT_DUR = 0.3     # SD 切出来的最小语音段（秒）
 MIN_EMB_SEG_DUR = 0.8     # 少于该时长的段，不参与 speaker embedding
 EMB_SIM_THRESHOLD = 0.5  # embedding 相似度阈值（同一个人的判定）
 
+# 合并相邻片段的阈值配置
+MERGE_GAP_THRESHOLD = 0.8   # 相邻片段间隔小于该值则尝试合并（秒）
+MERGE_MAX_DURATION = 18.0   # 合并后的最大时长（秒），避免过长
+MERGE_ALLOW_UNKNOWN = True  # 是否允许合并 unknown 片段
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SpeechEngine")
 
@@ -140,6 +145,46 @@ def plot_similarity_heatmap(
     plt.close()
 
     logger.info(f"Speaker embedding 热力图已保存：{save_path}")
+
+
+def merge_adjacent_segments(
+    segments: List[Dict],
+    gap_threshold: float = MERGE_GAP_THRESHOLD,
+    max_duration: float = MERGE_MAX_DURATION,
+    allow_unknown: bool = MERGE_ALLOW_UNKNOWN
+) -> List[Dict]:
+    """合并相邻且同一说话人的片段，减少过碎切分"""
+    if not segments:
+        return []
+
+    # 按时间排序
+    segments = sorted(segments, key=lambda s: (s.get("start", 0), s.get("end", 0)))
+    merged: List[Dict] = []
+    current = segments[0].copy()
+
+    for seg in segments[1:]:
+        same_speaker = seg.get("speaker_id") == current.get("speaker_id")
+        if not allow_unknown and (seg.get("speaker_id") == "unknown" or current.get("speaker_id") == "unknown"):
+            same_speaker = False
+
+        gap = float(seg.get("start", 0)) - float(current.get("end", 0))
+        candidate_duration = float(seg.get("end", 0)) - float(current.get("start", 0))
+
+        if same_speaker and gap >= 0 and gap <= gap_threshold and candidate_duration <= max_duration:
+            current["end"] = seg.get("end")
+            if current.get("text") and seg.get("text"):
+                current["text"] = f"{current['text']} {seg['text']}"
+            else:
+                current["text"] = (current.get("text", "") + seg.get("text", "")).strip()
+        else:
+            merged.append(current)
+            current = seg.copy()
+
+    merged.append(current)
+    # 重新编号 seg_id
+    for i, seg in enumerate(merged, start=1):
+        seg["seg_id"] = f"S{i}"
+    return merged
 
 
 # =====================================================
@@ -301,6 +346,8 @@ class SpeechEngine:
         if heatmap_path:
             print(f"debug:heatmap_path : {heatmap_path}")
         os.remove(norm_path)
+        # 合并相邻片段，减少碎片化
+        results = merge_adjacent_segments(results)
         return results
 
 

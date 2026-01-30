@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from funasr import AutoModel
 from modelscope.pipelines import pipeline
+import soundfile as sf
 
 # =====================================================
 # 一、全局配置区（模型路径 & 超参数）
@@ -30,12 +31,11 @@ ORACLE_NUM = 5
 TMP_DIR = "/tmp/asr_sd"
 os.makedirs(TMP_DIR, exist_ok=True)
 
-# DEVICE = (
-#     "cuda:0" if torch.cuda.is_available()
-#     else "mps" if torch.backends.mps.is_available()
-#     else "cpu"
-# )
-DEVICE = "cpu"
+DEVICE = (
+    "cuda:0" if torch.cuda.is_available()
+    # else "mps" if torch.backends.mps.is_available()
+    else "cpu"
+)
 
 # =========================
 # 关键超参数
@@ -44,6 +44,12 @@ DEVICE = "cpu"
 MIN_SEGMENT_DUR = 0.3     # SD 切出来的最小语音段（秒）
 MIN_EMB_SEG_DUR = 0.8     # 少于该时长的段，不参与 speaker embedding
 EMB_SIM_THRESHOLD = 0.5  # embedding 相似度阈值（同一个人的判定）
+
+# 后端音频有效时长检查（避免 SD 报“有效时长过短”）
+SD_MIN_DURATION = 2.0       # 归一化后总时长下限（秒）
+SD_MIN_VOICED_DURATION = 1.0  # 有效语音时长下限（秒）
+VAD_FRAME_MS = 30
+VAD_ENERGY_THRESHOLD = 0.01
 
 # 合并相邻片段的阈值配置
 MERGE_GAP_THRESHOLD = 0.8   # 相邻片段间隔小于该值则尝试合并（秒）
@@ -103,6 +109,32 @@ def cut_audio(src, start, end, out):
         return True
     except subprocess.CalledProcessError:
         return False
+
+
+def estimate_voiced_duration(audio_data: np.ndarray, sample_rate: int = 16000) -> float:
+    """基于能量的简易VAD，估算有效语音时长（秒）"""
+    if audio_data.size == 0:
+        return 0.0
+
+    frame_len = int(sample_rate * VAD_FRAME_MS / 1000)
+    if frame_len <= 0:
+        return 0.0
+
+    total_frames = int(np.ceil(len(audio_data) / frame_len))
+    voiced_frames = 0
+
+    for i in range(total_frames):
+        start = i * frame_len
+        end = min(start + frame_len, len(audio_data))
+        frame = audio_data[start:end]
+        if frame.size == 0:
+            continue
+        energy = float(np.sqrt(np.mean(frame ** 2)))
+        if energy >= VAD_ENERGY_THRESHOLD:
+            voiced_frames += 1
+
+    voiced_seconds = (voiced_frames * frame_len) / sample_rate
+    return voiced_seconds
 
 
 # =====================================================
@@ -235,6 +267,24 @@ class SpeechEngine:
 
     def process_audio(self, audio_path: str, session_id: str) -> List[Dict]:
         norm_path = normalize_audio(audio_path)
+        try:
+            audio_data, sample_rate = sf.read(norm_path)
+            if audio_data.ndim > 1:
+                audio_data = np.mean(audio_data, axis=1)
+            duration = len(audio_data) / float(sample_rate) if sample_rate else 0.0
+            if duration < SD_MIN_DURATION:
+                logger.info(f"音频时长过短，跳过SD: {duration:.2f}s")
+                os.remove(norm_path)
+                return []
+
+            voiced_duration = estimate_voiced_duration(audio_data, sample_rate)
+            if voiced_duration < SD_MIN_VOICED_DURATION:
+                logger.info(f"有效语音过短，跳过SD: {voiced_duration:.2f}s")
+                os.remove(norm_path)
+                return []
+        except Exception as e:
+            logger.warning(f"音频预检失败，继续SD: {e}")
+
         try:
             sd_ret = self.sd_pipeline(norm_path, oracle_num=ORACLE_NUM)
             segments = convert_numpy(sd_ret).get("text", [])

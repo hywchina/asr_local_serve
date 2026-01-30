@@ -118,8 +118,9 @@ curl -X POST "http://127.0.0.1:8002/asr_sd?session_id=clinic_001" \
 
 阅读前后端代码，然后辅助我完善代码
 
-前端代码：/home/huyanwei/projects/asr_local_serve/services/gradio_asr_demo_v3.py
-后端代码：/home/huyanwei/projects/asr_local_serve/services/local_asr_sd_server_v6.py
+前端代码：/home/huyanwei/projects/asr_local_serve/services/gradio_asr_sd_demo.py
+后端代码：/home/huyanwei/projects/asr_local_serve/services/local_asr_sd_serve.py
+说明文档：/home/huyanwei/projects/asr_local_serve/README.md
 
 问题：
 1. 前端录音会缺失 WARNING:SpeechEngine:SD 处理失败（音频过短等原因）: modelscope error: The effective audio duration is too short.
@@ -145,3 +146,5 @@ Received 0 segments
 
 
 6. 仔细检查代码逻辑，梳理语音处理顺序，避免有缺失、遗漏处理的情况，现在还是能发现：长时间没人说话情况下，再次说话的声音没有被识别转文字
+
+7. 

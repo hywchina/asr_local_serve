@@ -167,9 +167,7 @@ def build_conversation_messages(use_mapping: bool = False, use_layout: bool = Fa
     if not state.all_segments:
         return []
 
-    segments = state.all_segments
-    if not state.is_recording:
-        segments = merge_adjacent_segments(segments)
+    segments = merge_adjacent_segments(state.all_segments)
 
     messages = []
     for seg in segments:
@@ -427,6 +425,7 @@ def process_audio_stream(audio):
         # 连续静音过久，清空缓存，避免历史静音拖累识别
         state.audio_buffer = []
         state.last_send_time = None
+        state.last_voiced_time = None
         debug_log("silence_reset buffer cleared")
 
     should_send = False
@@ -473,11 +472,12 @@ def process_audio_stream(audio):
             max_samples = int(MAX_BUFFER_DURATION * SAMPLE_RATE)
             if len(full_audio) > max_samples:
                 state.audio_buffer = [full_audio[-max_samples:]]
-            # 若长时间静音导致后端无结果，丢弃过久历史，只保留最近窗口
-            window_samples = int(VAD_WINDOW_DURATION * SAMPLE_RATE)
-            if len(full_audio) > window_samples:
-                state.audio_buffer = [full_audio[-window_samples:]]
-            debug_log("no_segments: keep_recent_window")
+            if voiced_ratio < MIN_VOICED_RATIO and state.last_voiced_time is None:
+                state.audio_buffer = []
+                state.last_send_time = None
+                debug_log("no_segments: silent_reset")
+            else:
+                debug_log("no_segments: keep_buffer")
         
         state.last_send_time = time.time()
     
@@ -513,10 +513,34 @@ CHAT_CSS = """
 }
 #conversation_chatbot .wrap {
     height: 520px;
+    overflow-y: auto;
 }
 """
 
 with gr.Blocks(title="智能医生问诊AI系统") as demo:
+    gr.HTML(
+        """
+        <script>
+        const scrollChatbotToBottom = () => {
+            const wrap = document.querySelector('#conversation_chatbot .wrap');
+            if (wrap) {
+                wrap.scrollTop = wrap.scrollHeight;
+            }
+        };
+        const observer = new MutationObserver(scrollChatbotToBottom);
+        const setupObserver = () => {
+            const target = document.querySelector('#conversation_chatbot');
+            if (target) {
+                observer.observe(target, { childList: true, subtree: true });
+            }
+        };
+        window.addEventListener('load', () => {
+            setupObserver();
+            setInterval(scrollChatbotToBottom, 1000);
+        });
+        </script>
+        """
+    )
     gr.Markdown("# 🏥 智能医生问诊AI系统")
     gr.Markdown("基于语音识别和说话人分离的实时问诊记录系统")
     

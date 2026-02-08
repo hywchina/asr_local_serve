@@ -1,0 +1,464 @@
+import os
+import uuid
+import shutil
+import subprocess
+import logging
+import torch
+import numpy as np
+from typing import List, Dict
+
+import matplotlib
+matplotlib.use('Agg')  # 非交互式 backend
+import matplotlib.pyplot as plt
+
+from fastapi import FastAPI, UploadFile, File, Query
+from fastapi.responses import JSONResponse
+
+from funasr import AutoModel
+from modelscope.pipelines import pipeline
+import soundfile as sf
+
+# =====================================================
+# 一、全局配置区（模型路径 & 超参数）
+# =====================================================
+REMOTE_CODE = "./model.py"
+ASR_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/Fun-ASR-Nano-2512"
+VAD_MODEL_DIR = "/home/huyanwei/projects/llm_cache/ms/model/speech_fsmn_vad_zh-cn-16k-common-pytorch"
+SD_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_speaker-diarization_common"
+SV_MODEL_DIR  = "/home/huyanwei/projects/llm_cache/ms/model/speech_campplus_sv_zh-cn_16k-common"
+
+ORACLE_NUM = 5
+TMP_DIR = "/tmp/asr_sd"
+os.makedirs(TMP_DIR, exist_ok=True)
+
+DEVICE = (
+    "cuda:0" if torch.cuda.is_available()
+    # else "mps" if torch.backends.mps.is_available()
+    else "cpu"
+)
+
+# =========================
+# 关键超参数
+# =========================
+
+MIN_SEGMENT_DUR = 0.3     # SD 切出来的最小语音段（秒）
+MIN_EMB_SEG_DUR = 0.8     # 少于该时长的段，不参与 speaker embedding
+EMB_SIM_THRESHOLD = 0.5  # embedding 相似度阈值（同一个人的判定）
+
+# 后端音频有效时长检查（避免 SD 报“有效时长过短”）
+SD_MIN_DURATION = 2.0       # 归一化后总时长下限（秒）
+SD_MIN_VOICED_DURATION = 1.0  # 有效语音时长下限（秒）
+VAD_FRAME_MS = 30
+VAD_ENERGY_THRESHOLD = 0.01
+
+# 合并相邻片段的阈值配置
+MERGE_GAP_THRESHOLD = 0.8   # 相邻片段间隔小于该值则尝试合并（秒）
+MERGE_MAX_DURATION = 18.0   # 合并后的最大时长（秒），避免过长
+MERGE_ALLOW_UNKNOWN = True  # 是否允许合并 unknown 片段
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("SpeechEngine")
+
+# =====================================================
+# 二、工具函数
+# =====================================================
+
+def convert_numpy(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, dict):
+        return {k: convert_numpy(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [convert_numpy(i) for i in obj]
+    return obj
+
+
+def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
+    a = a / (np.linalg.norm(a) + 1e-8)
+    b = b / (np.linalg.norm(b) + 1e-8)
+    return float(np.dot(a, b))
+
+
+def run_ffmpeg(cmd):
+    subprocess.run(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=True
+    )
+
+
+def normalize_audio(input_path: str) -> str:
+    norm_path = input_path + "_norm.wav"
+    cmd = ["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", "-vn", norm_path]
+    run_ffmpeg(cmd)
+    return norm_path
+
+
+def cut_audio(src, start, end, out):
+    if end <= start or end - start < MIN_SEGMENT_DUR:
+        return False
+
+    cmd = [
+        "ffmpeg", "-y", "-i", src,
+        "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
+        "-ar", "16000", "-ac", "1", out
+    ]
+    try:
+        run_ffmpeg(cmd)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def estimate_voiced_duration(audio_data: np.ndarray, sample_rate: int = 16000) -> float:
+    """基于能量的简易VAD，估算有效语音时长（秒）"""
+    if audio_data.size == 0:
+        return 0.0
+
+    frame_len = int(sample_rate * VAD_FRAME_MS / 1000)
+    if frame_len <= 0:
+        return 0.0
+
+    total_frames = int(np.ceil(len(audio_data) / frame_len))
+    voiced_frames = 0
+
+    for i in range(total_frames):
+        start = i * frame_len
+        end = min(start + frame_len, len(audio_data))
+        frame = audio_data[start:end]
+        if frame.size == 0:
+            continue
+        energy = float(np.sqrt(np.mean(frame ** 2)))
+        if energy >= VAD_ENERGY_THRESHOLD:
+            voiced_frames += 1
+
+    voiced_seconds = (voiced_frames * frame_len) / sample_rate
+    return voiced_seconds
+
+
+# =====================================================
+# 三、🔥 Speaker Embedding 相似度 & 热力图
+# =====================================================
+
+def compute_similarity_matrix(embeddings: List[np.ndarray]) -> np.ndarray:
+    n = len(embeddings)
+    mat = np.zeros((n, n), dtype=np.float32)
+    for i in range(n):
+        for j in range(n):
+            mat[i, j] = cosine_sim(embeddings[i], embeddings[j])
+    return mat
+
+
+def plot_similarity_heatmap(
+    sim_matrix: np.ndarray,
+    title: str,
+    save_path: str
+):
+    n = sim_matrix.shape[0]
+
+    plt.figure(figsize=(8, 6))
+    im = plt.imshow(sim_matrix, cmap="hot", vmin=0, vmax=1, origin="lower")
+    plt.colorbar(im)
+
+    plt.xticks(range(n), [f"S{i}" for i in range(n)])
+    plt.yticks(range(n), [f"S{i}" for i in range(n)])
+
+    for i in range(n):
+        for j in range(n):
+            plt.text(j, i, f"{sim_matrix[i, j]:.2f}",
+                     ha="center", va="center",
+                     color="white" if sim_matrix[i, j] < 0.6 else "black",
+                     fontsize=8)
+
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200)
+    plt.close()
+
+    logger.info(f"Speaker embedding 热力图已保存：{save_path}")
+
+
+def merge_adjacent_segments(
+    segments: List[Dict],
+    gap_threshold: float = MERGE_GAP_THRESHOLD,
+    max_duration: float = MERGE_MAX_DURATION,
+    allow_unknown: bool = MERGE_ALLOW_UNKNOWN
+) -> List[Dict]:
+    """合并相邻且同一说话人的片段，减少过碎切分"""
+    if not segments:
+        return []
+
+    # 按时间排序
+    segments = sorted(segments, key=lambda s: (s.get("start", 0), s.get("end", 0)))
+    merged: List[Dict] = []
+    current = segments[0].copy()
+
+    for seg in segments[1:]:
+        same_speaker = seg.get("speaker_id") == current.get("speaker_id")
+        if not allow_unknown and (seg.get("speaker_id") == "unknown" or current.get("speaker_id") == "unknown"):
+            same_speaker = False
+
+        gap = float(seg.get("start", 0)) - float(current.get("end", 0))
+        candidate_duration = float(seg.get("end", 0)) - float(current.get("start", 0))
+
+        if same_speaker and gap >= 0 and gap <= gap_threshold and candidate_duration <= max_duration:
+            current["end"] = seg.get("end")
+            if current.get("text") and seg.get("text"):
+                current["text"] = f"{current['text']} {seg['text']}"
+            else:
+                current["text"] = (current.get("text", "") + seg.get("text", "")).strip()
+        else:
+            merged.append(current)
+            current = seg.copy()
+
+    merged.append(current)
+    # 重新编号 seg_id
+    for i, seg in enumerate(merged, start=1):
+        seg["seg_id"] = f"S{i}"
+    return merged
+
+
+# =====================================================
+# 四、🔥 核心类：SpeechEngine
+# =====================================================
+
+class SpeechEngine:
+
+    def __init__(self):
+        self._load_models()
+        self.session_speakers = {}
+
+    def _load_models(self):
+        logger.info("加载 ASR 模型...")
+        self.asr_model = AutoModel(
+            model=ASR_MODEL_DIR,
+            vad_model=VAD_MODEL_DIR,
+            trust_remote_code=True,
+            device=DEVICE,
+            dtype="float32",  
+            disable_update=True,
+            remote_code=REMOTE_CODE,
+        )
+
+        logger.info("加载 SD 模型...")
+        self.sd_pipeline = pipeline(
+            task="speaker-diarization",
+            model=SD_MODEL_DIR,
+            model_revision="v1.0.0"
+        )
+
+        logger.info("加载 Speaker Embedding 模型...")
+        self.sv_pipeline = pipeline(
+            task="speaker-verification",
+            model=SV_MODEL_DIR
+        )
+
+    def match_or_create_speaker(self, session_id: str, emb: np.ndarray):
+        bank = self.session_speakers.setdefault(session_id, [])
+        for spk in bank:
+            sim = cosine_sim(spk["emb"], emb)
+            if sim >= EMB_SIM_THRESHOLD:
+                spk["emb"] = 0.9 * spk["emb"] + 0.1 * emb
+                return spk["id"], sim
+        new_id = f"speaker_{len(bank) + 1}"
+        bank.append({"id": new_id, "emb": emb})
+        return new_id, None
+
+    def process_audio(self, audio_path: str, session_id: str) -> List[Dict]:
+        norm_path = normalize_audio(audio_path)
+        try:
+            audio_data, sample_rate = sf.read(norm_path)
+            if audio_data.ndim > 1:
+                audio_data = np.mean(audio_data, axis=1)
+            duration = len(audio_data) / float(sample_rate) if sample_rate else 0.0
+            if duration < SD_MIN_DURATION:
+                logger.info(f"音频时长过短，跳过SD: {duration:.2f}s")
+                os.remove(norm_path)
+                return []
+
+            voiced_duration = estimate_voiced_duration(audio_data, sample_rate)
+            if voiced_duration < SD_MIN_VOICED_DURATION:
+                logger.info(f"有效语音过短，跳过SD: {voiced_duration:.2f}s")
+                os.remove(norm_path)
+                return []
+        except Exception as e:
+            logger.warning(f"音频预检失败，继续SD: {e}")
+
+        try:
+            sd_ret = self.sd_pipeline(norm_path, oracle_num=ORACLE_NUM)
+            segments = convert_numpy(sd_ret).get("text", [])
+            print(f"debug: segments: {segments}")
+        except AssertionError as e:
+            logger.warning(f"SD 处理失败（音频过短等原因）: {e}")
+            os.remove(norm_path)
+            return []
+        except Exception as e:
+            logger.exception(f"SD 处理异常: {e}")
+            os.remove(norm_path)
+            return []
+
+        results = []
+
+        # 🔥 用于热力图的 embedding 收集
+        emb_list = []
+        
+        # 🔥 使用全局会话级说话人库，确保跨请求的说话人ID一致性
+        global_bank = self.session_speakers.setdefault(session_id, [])
+
+        print(f"debug: len(segments): {len(segments)}")
+        print(f"debug: current session has {len(global_bank)} known speakers")
+        emb_idx = 0   # 仅统计参与 embedding 的片段数
+        seg_idx = 0   # 序号化返回的文本片段
+        for start, end, _ in segments:
+            start, end = float(start), float(end)
+            dur = end - start
+            if dur < MIN_SEGMENT_DUR:
+                continue
+
+            seg_wav = os.path.join(TMP_DIR, f"{uuid.uuid4()}.wav")
+            if not cut_audio(norm_path, start, end, seg_wav):
+                continue
+
+            asr_ret = self.asr_model.generate(
+                input=[seg_wav], batch_size=1, language="中文", itn=True
+            )
+            text = asr_ret[0].get("text", "").strip()
+
+            speaker_id = "unknown"
+            debug = {}
+
+            if dur >= MIN_EMB_SEG_DUR:
+                try:
+                    emb = self.sv_pipeline([seg_wav], output_emb=True)["embs"][0]
+                    emb = np.array(emb, dtype=np.float32)
+                    emb_list.append(emb)
+
+                    print(f"debug:{emb_idx} embedding shape: {emb.shape}")
+                    emb_idx += 1
+
+                    # 🔥 在全局会话说话人库中进行匹配（跨请求一致性）
+                    matched_id = None
+                    matched_sim = None
+                    best_match_idx = None
+                    
+                    for i, spk in enumerate(global_bank):
+                        sim = cosine_sim(spk["emb"], emb)
+                        if sim >= EMB_SIM_THRESHOLD:
+                            if matched_sim is None or sim > matched_sim:
+                                matched_sim = sim
+                                best_match_idx = i
+                    
+                    if best_match_idx is not None:
+                        # 更新说话人embedding（指数移动平均）
+                        global_bank[best_match_idx]["emb"] = (
+                            0.9 * global_bank[best_match_idx]["emb"] + 0.1 * emb
+                        )
+                        matched_id = global_bank[best_match_idx]["id"]
+                    else:
+                        # 创建新说话人
+                        new_id = f"speaker_{len(global_bank) + 1}"
+                        global_bank.append({"id": new_id, "emb": emb})
+                        matched_id = new_id
+
+                    speaker_id = matched_id
+                    debug["merge_similarity"] = round(matched_sim, 3) if matched_sim else None
+                    debug["is_new_speaker"] = matched_sim is None
+                except Exception as e:
+                    logger.warning(f"Speaker embedding 失败: {e}")
+
+            os.remove(seg_wav)
+
+            if text:
+                seg_idx += 1
+                results.append({
+                    "start": round(start, 2),
+                    "end": round(end, 2),
+                    "speaker_id": speaker_id,
+                    "seg_id": f"S{seg_idx}",
+                    "text": text,
+                    "debug": debug
+                })
+
+        # 🔥 绘制 embedding 相似度热力图
+        print(f"debug:emb_list length: {len(emb_list)}")
+        heatmap_path = None
+        if len(emb_list) >= 2:
+            sim_matrix = compute_similarity_matrix(emb_list)
+            heatmap_path = os.path.join(
+                TMP_DIR, f"speaker_sim_{session_id}.png"
+            )
+            plot_similarity_heatmap(
+                sim_matrix,
+                title=f"Session {session_id} Speaker Embedding Similarity",
+                save_path=heatmap_path
+            )
+        if heatmap_path:
+            print(f"debug:heatmap_path : {heatmap_path}")
+        os.remove(norm_path)
+        # 合并相邻片段，减少碎片化
+        results = merge_adjacent_segments(results)
+        return results
+
+
+# =====================================================
+# 五、FastAPI
+# =====================================================
+
+engine = SpeechEngine()
+
+app = FastAPI(
+    title="ASR + SD + Speaker Embedding (Session-Persistent)",
+    version="2.3"
+)
+
+@app.post("/asr_sd")
+def asr_sd(
+    file: UploadFile = File(...),
+    session_id: str = Query(...)
+):
+    audio_id = str(uuid.uuid4())
+    raw_path = os.path.join(
+        TMP_DIR,
+        audio_id + os.path.splitext(file.filename)[-1]
+    )
+
+    with open(raw_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    try:
+        segments = engine.process_audio(raw_path, session_id)
+        return JSONResponse({
+            "session_id": session_id,
+            "segments": segments
+        })
+    finally:
+        if os.path.exists(raw_path):
+            os.remove(raw_path)
+
+
+@app.post("/reset_session")
+def reset_session(session_id: str = Query(...)):
+    """重置指定会话的说话人库"""
+    if session_id in engine.session_speakers:
+        del engine.session_speakers[session_id]
+        logger.info(f"已重置会话 {session_id} 的说话人库")
+        return JSONResponse({
+            "status": "success",
+            "message": f"Session {session_id} has been reset"
+        })
+    else:
+        return JSONResponse({
+            "status": "info",
+            "message": f"Session {session_id} not found or already empty"
+        })
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "local_asr_sd_server:app",
+        host="0.0.0.0",
+        port=8002,
+        reload=False
+    )
